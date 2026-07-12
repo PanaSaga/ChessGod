@@ -15,4 +15,5 @@ MonoBehaviour:
   pieceType: 0
   prefab: {fileID: 0}
   defaultHp: 1
-  scoreValue: 10
+  scoreValue: 100
+  spawnProbability: 0
