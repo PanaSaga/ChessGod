@@ -1,50 +1,106 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 업적(Achievement) 팝업이 "열릴 때마다" 최신 진행 상황으로 내용을 갱신하는 스크립트입니다.
-/// PopupUI는 절대 건드리지 않고, PopupUI가 보내는 OnOpened 이벤트만 받아서 동작합니다.
+/// 업적 팝업이 "열릴 때마다" IGameDataProvider로부터 최신 진행 상황을 받아 화면을 갱신합니다.
+/// PopupUI는 건드리지 않고, PopupUI가 보내는 OnOpened 이벤트만 받아서 동작합니다.
 ///
-/// 붙이는 위치: AchievementPopup 오브젝트 (PopupUI와 같은 오브젝트에 함께 부착)
+/// 붙이는 위치: AchievementPopup 오브젝트 (PopupUI와 같은 오브젝트)
 ///
 /// [연결 방법 - 유니티 에디터]
-/// 1. AchievementPopup의 PopupUI 컴포넌트에서 On Opened() 리스트에 + 클릭
-/// 2. 오브젝트 슬롯에 AchievementPopup(자기 자신) 드래그
+/// 1. PopupUI 컴포넌트의 On Opened() 리스트에 + 클릭
+/// 2. 오브젝트 슬롯에 자기 자신 드래그
 /// 3. 함수 선택 → AchievementPopulator > RefreshAchievements()
 ///
-/// [나중에 게임 데이터를 연결할 때]
-/// RefreshAchievements() 함수 안의 TODO 부분만 채우면 됩니다.
-/// 예: 업적 달성 여부, 진행도(%), 잠금 아이콘 표시 등.
+/// [게임팀 작업물 연결 시 필요한 작업]
+/// 없음. GlobalManager.DataProvider 자리에 실제 구현체만 꽂히면 이 스크립트는 그대로 작동합니다.
+/// 단, AchievementSlotUI.Setup(AchievementData) 함수는 UI팀이 슬롯 프리팹에 맞게 미리 작성해둬야 합니다.
 /// </summary>
 public class AchievementPopulator : MonoBehaviour
 {
     [Header("업적 항목이 생성될 부모 오브젝트 (리스트 레이아웃 등)")]
     [SerializeField] private Transform contentParent;
 
-    [Header("업적 항목 하나의 프리팹")]
+    [Header("업적 항목 하나의 프리팹 (AchievementSlotUI 컴포넌트 포함)")]
     [SerializeField] private GameObject achievementSlotPrefab;
 
     // PopupUI.OnOpened 이벤트에 연결하는 함수
     public void RefreshAchievements()
     {
-        // ---------------------------------------------------------
-        // TODO: 여기에 실제 업적 데이터를 불러와서 화면에 그리는 로직을 넣습니다.
-        //
-        // 예시 흐름 (실제 데이터 구조가 정해지면 이 부분만 교체):
-        //
-        // 1) 기존에 그려져 있던 항목들을 전부 지운다
-        //    foreach (Transform child in contentParent) Destroy(child.gameObject);
-        //
-        // 2) 세이브/게임매니저에서 "전체 업적 목록 + 달성 여부/진행도"를 가져온다
-        //    List<AchievementData> achievements = GameData.Instance.GetAllAchievements();
-        //
-        // 3) 목록을 순회하며 슬롯 프리팹을 생성하고 정보를 채운다
-        //    foreach (var data in achievements)
-        //    {
-        //        GameObject slot = Instantiate(achievementSlotPrefab, contentParent);
-        //        slot.GetComponent<AchievementSlotUI>().Setup(data);
-        //    }
-        // ---------------------------------------------------------
+        if (GlobalManager.DataProvider == null)
+        {
+            Debug.LogWarning("[AchievementPopulator] DataProvider가 아직 연결되지 않았습니다. " +
+                              "GlobalManager 하위에 IGameDataProvider 구현체(Stub 또는 실제 매니저)가 있는지 확인하세요.");
+            return;
+        }
 
-        Debug.Log("[AchievementPopulator] 업적 갱신 자리 - 아직 데이터 연결 전입니다.");
+        foreach (Transform child in contentParent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        List<AchievementData> achievements = GlobalManager.DataProvider.GetAllAchievements();
+
+        foreach (var data in achievements)
+        {
+            GameObject slot = Instantiate(achievementSlotPrefab, contentParent);
+
+            var slotUI = slot.GetComponent<AchievementSlotUI>();
+            if (slotUI != null)
+            {
+                slotUI.Setup(data);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // [주의] 유니티 Button.OnClick() 인스펙터는 파라미터가 1개 이하인
+    // 함수만 드롭다운에 표시합니다. 파라미터 2개짜리 함수는 인스펙터에서
+    // 선택할 수 없으므로, 탭 버튼 3개에 각각 연결할 수 있도록
+    // 파라미터 없는 함수 3개로 나눠서 제공합니다.
+    // ---------------------------------------------------------------
+
+    // Tab_Progress(전체) 버튼의 OnClick()에 연결
+    public void ShowAll()
+    {
+        RefreshFiltered(false, false);
+    }
+
+    // Tab_Completed(달성) 버튼의 OnClick()에 연결
+    public void ShowCompletedOnly()
+    {
+        RefreshFiltered(true, false);
+    }
+
+    // Tab_Incomplete(미달성) 버튼의 OnClick()에 연결
+    public void ShowIncompleteOnly()
+    {
+        RefreshFiltered(false, true);
+    }
+
+    // 실제 필터링 로직 (내부용, 인스펙터에서는 직접 연결하지 않음)
+    private void RefreshFiltered(bool onlyCompleted, bool onlyIncomplete)
+    {
+        if (GlobalManager.DataProvider == null) return;
+
+        foreach (Transform child in contentParent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        List<AchievementData> achievements = GlobalManager.DataProvider.GetAllAchievements();
+
+        foreach (var data in achievements)
+        {
+            if (onlyCompleted && !data.isCompleted) continue;
+            if (onlyIncomplete && data.isCompleted) continue;
+
+            GameObject slot = Instantiate(achievementSlotPrefab, contentParent);
+            var slotUI = slot.GetComponent<AchievementSlotUI>();
+            if (slotUI != null)
+            {
+                slotUI.Setup(data);
+            }
+        }
     }
 }
