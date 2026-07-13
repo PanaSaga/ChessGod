@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -23,10 +22,6 @@ public class GameManager : MonoBehaviour
     public float maxTurnTime = 10f;
     public bool isSettling;
     public bool isGameOver;
-
-    [Header("Turn settlement")]
-    [Tooltip("Time in seconds that all player/enemy attack ranges remain visible before damage is resolved.")]
-    [SerializeField, Min(0f)] private float settlementPreviewDuration = 0.5f;
 
     private SpawnManager spawnManager;
     private ControlManager controlManager;
@@ -86,19 +81,12 @@ public class GameManager : MonoBehaviour
     {
         if (isSettling || isGameOver) return;
         isSettling = true;
-        StartCoroutine(SettlementRoutine());
-    }
-
-    private IEnumerator SettlementRoutine()
-    {
-        // BoardViewManager reads isSettling and shows all enemy ranges during this wait.
-        yield return new WaitForSeconds(settlementPreviewDuration);
 
         ResolveBlackAttacks();
         if (playerPiece.hp <= 0)
         {
             GameOver();
-            yield break;
+            return;
         }
 
         ResolvePlayerAttack();
@@ -129,8 +117,6 @@ public class GameManager : MonoBehaviour
 
             playerScore += enemy.scoreValue;
             defeatedBlackPieceCount++;
-            if (enemy.PieceType == ChessPieceType.King)
-                playerPiece.RestoreHp(1);
             spawnManager.RemovePiece(enemy);
         }
     }

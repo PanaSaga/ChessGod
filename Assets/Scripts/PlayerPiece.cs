@@ -3,7 +3,6 @@ using UnityEngine;
 public class PlayerPiece : ChessPiece
 {
     [Header("Player state")]
-    public int maxHp = 3;
     public int hp = 3;
     public int atk = 1;
 
@@ -91,14 +90,6 @@ public class PlayerPiece : ChessPiece
     {
         hp--;
         Debug.Log($"Player hit. Remaining HP: {hp}");
-    }
-
-    public void RestoreHp(int amount)
-    {
-        if (amount <= 0 || hp >= maxHp) return;
-        int previousHp = hp;
-        hp = Mathf.Min(maxHp, hp + amount);
-        Debug.Log($"Player recovered {hp - previousHp} HP. Current HP: {hp}");
     }
 
     private void ApplyTransformVisual(ChessPieceSO transformData)
