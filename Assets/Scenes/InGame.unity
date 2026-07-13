@@ -5060,6 +5060,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1514934632}
   - {fileID: 423356427}
   - {fileID: 1456459474}
   - {fileID: 648139268}
@@ -6018,6 +6019,54 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1510208541}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1514934631
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1514934632}
+  - component: {fileID: 1514934633}
+  m_Layer: 0
+  m_Name: BoardViewManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1514934632
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514934631}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1349783974}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1514934633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514934631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 679e5a71cce856147b081eed0c38e82c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoardViewManager
+  playerRangeMaterial: {fileID: 2100000, guid: 7733fa47d04b52a458b2d39f1be3ae24, type: 2}
+  enemyRangeMaterial: {fileID: 2100000, guid: a285ca4e48973574db5df9ad80e86d5b, type: 2}
+  overlapRangeMaterial: {fileID: 2100000, guid: c4c344ed9c52b684e9252451cb7d3d4c, type: 2}
+  enemyPreviewInterval: 1
 --- !u!1 &1552980035
 GameObject:
   m_ObjectHideFlags: 0
@@ -7281,9 +7330,11 @@ MonoBehaviour:
   currentStage: 1
   currentTurn: 1
   playerScore: 0
+  defeatedBlackPieceCount: 0
   turnTimer: 10
   maxTurnTime: 10
   isSettling: 0
+  isGameOver: 0
 --- !u!1 &1901914850
 GameObject:
   m_ObjectHideFlags: 0

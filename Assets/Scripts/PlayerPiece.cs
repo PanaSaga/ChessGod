@@ -2,45 +2,74 @@ using UnityEngine;
 
 public class PlayerPiece : ChessPiece
 {
-    [Header("플레이어 상태 데이터")]
+    [Header("Player state")]
     public int hp = 3;
     public int atk = 1;
-    public ChessPieceType currentRangeType = ChessPieceType.King;
 
-    [Header("버프 및 변신 타이머")]
-    public float buffTimer = 0f;
-    public bool isBuffActive = false;
-    public float transformTimer = 0f;
-    public bool isTransformActive = false;
+    [Header("Active transform")]
+    public ChessPieceSO transformedAttackData;
+    public float transformTimer;
+    public bool isTransformActive;
 
-    void Update()
+    [Header("Active buff")]
+    public float buffTimer;
+    public bool isBuffActive;
+
+    [Header("Transform visual")]
+    [SerializeField] private SpriteRenderer playerRenderer;
+    private Sprite defaultSprite;
+    private Color defaultColor;
+    private bool defaultFlipX;
+    private bool defaultFlipY;
+
+    // This is the sole source for the player's attack calculation and board highlight.
+    public ChessPieceSO CurrentAttackData => isTransformActive && transformedAttackData != null
+        ? transformedAttackData
+        : pieceData;
+
+    private void Awake()
     {
-        // 버프 타이머 처리 (매 프레임마다 시간 감소)
+        if (playerRenderer == null)
+            playerRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        if (playerRenderer == null)
+        {
+            Debug.LogError("PlayerPiece requires the player's SpriteRenderer for transform visuals.");
+            return;
+        }
+
+        defaultSprite = playerRenderer.sprite;
+        defaultColor = playerRenderer.color;
+        defaultFlipX = playerRenderer.flipX;
+        defaultFlipY = playerRenderer.flipY;
+    }
+
+    private void Update()
+    {
         if (isBuffActive)
         {
             buffTimer -= Time.deltaTime;
             if (buffTimer <= 0f)
             {
                 isBuffActive = false;
-                atk = 1; // 기획서에 따라 기본 공격력 1로 복구
-                Debug.Log("버프 종료: 공격력이 1로 돌아왔습니다.");
+                atk = 1;
+                Debug.Log("Buff ended. Attack returned to 1.");
             }
         }
 
-        // 변신 타이머 처리 (매 프레임마다 시간 감소)
         if (isTransformActive)
         {
             transformTimer -= Time.deltaTime;
             if (transformTimer <= 0f)
             {
                 isTransformActive = false;
-                currentRangeType = ChessPieceType.King; // 기획서에 따라 기본 형태 킹으로 복구
-                Debug.Log("변신 종료: 공격 범위가 킹으로 돌아왔습니다.");
+                transformedAttackData = null;
+                RestoreKingVisual();
+                Debug.Log("Transform ended. Attack range returned to the player SO.");
             }
         }
     }
 
-    // 버프 획득 시 호출될 함수 (기획서 룰 10 반영: 남은 시간 무관하게 시간 갱신)
     public void ApplyBuff(float duration, int buffAtk)
     {
         isBuffActive = true;
@@ -48,23 +77,44 @@ public class PlayerPiece : ChessPiece
         atk = buffAtk;
     }
 
-    // 변신 획득 시 호출될 함수 (기획서 룰 11 반영: 남은 시간 무관하게 신규 형태 및 시간 갱신)
-    public void ApplyTransform(float duration, ChessPieceType newType)
+    public void ApplyTransform(float duration, ChessPieceSO newAttackData)
     {
+        if (newAttackData == null) return;
         isTransformActive = true;
         transformTimer = duration;
-        currentRangeType = newType;
+        transformedAttackData = newAttackData;
+        ApplyTransformVisual(newAttackData);
     }
 
-    // 피격 시 호출될 함수
     public void TakeDamage()
     {
         hp--;
-        Debug.Log($"플레이어 피격! 남은 HP: {hp}");
-        if (hp <= 0)
+        Debug.Log($"Player hit. Remaining HP: {hp}");
+    }
+
+    private void ApplyTransformVisual(ChessPieceSO transformData)
+    {
+        if (playerRenderer == null || transformData.prefab == null) return;
+
+        SpriteRenderer sourceRenderer = transformData.prefab.GetComponentInChildren<SpriteRenderer>(true);
+        if (sourceRenderer == null || sourceRenderer.sprite == null)
         {
-            Debug.Log("게임 오버! 플레이어 HP가 0이 되었습니다.");
-            // 2단계에서 GameManager의 게임 오버 로직과 연결될 예정입니다.
+            Debug.LogError($"The prefab assigned to {transformData.name} needs a SpriteRenderer with a sprite.");
+            return;
         }
+
+        playerRenderer.sprite = sourceRenderer.sprite;
+        playerRenderer.color = sourceRenderer.color;
+        playerRenderer.flipX = sourceRenderer.flipX;
+        playerRenderer.flipY = sourceRenderer.flipY;
+    }
+
+    private void RestoreKingVisual()
+    {
+        if (playerRenderer == null) return;
+        playerRenderer.sprite = defaultSprite;
+        playerRenderer.color = defaultColor;
+        playerRenderer.flipX = defaultFlipX;
+        playerRenderer.flipY = defaultFlipY;
     }
 }

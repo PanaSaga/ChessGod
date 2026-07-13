@@ -71,7 +71,7 @@ public class GameManager : MonoBehaviour
         if (pickedPiece is WhiteBuffPiece buff)
             playerPiece.ApplyBuff(buff.buffDuration, buff.attackBuffPower);
         else if (pickedPiece is WhiteTransformPiece transform)
-            playerPiece.ApplyTransform(transform.transformDuration, transform.CurrentTransformType);
+            playerPiece.ApplyTransform(transform.transformDuration, transform.pieceData);
         else return;
 
         spawnManager.RemovePiece(pickedPiece);
@@ -99,7 +99,7 @@ public class GameManager : MonoBehaviour
         Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
         bool playerHit = spawnManager.activePieces
             .OfType<BlackEnemyPiece>()
-            .Any(enemy => GetAttackPositions(enemy.PieceType, enemy.gridPos).Contains(playerPosition));
+            .Any(enemy => ChessAttackResolver.GetAttackCells(enemy.pieceData, enemy.gridPos).Contains(playerPosition));
 
         // Even if multiple enemies cover the player, damage is applied only once per turn.
         if (playerHit) playerPiece.TakeDamage();
@@ -108,7 +108,7 @@ public class GameManager : MonoBehaviour
     private void ResolvePlayerAttack()
     {
         Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
-        HashSet<Vector2Int> targets = GetAttackPositions(playerPiece.currentRangeType, playerPosition);
+        HashSet<Vector2Int> targets = ChessAttackResolver.GetAttackCells(playerPiece.CurrentAttackData, playerPosition);
 
         foreach (BlackEnemyPiece enemy in spawnManager.activePieces.OfType<BlackEnemyPiece>().ToArray())
         {
@@ -173,39 +173,4 @@ public class GameManager : MonoBehaviour
         // Connect the lobby scene/UI transition here when it is available.
     }
 
-    private static HashSet<Vector2Int> GetAttackPositions(ChessPieceType type, Vector2Int origin)
-    {
-        var positions = new HashSet<Vector2Int>();
-        void Add(int x, int z)
-        {
-            Vector2Int point = origin + new Vector2Int(x, z);
-            if (point.x >= 0 && point.x < BoardSize && point.y >= 0 && point.y < BoardSize) positions.Add(point);
-        }
-        void Slide(int x, int z)
-        {
-            for (int distance = 1; distance < BoardSize; distance++)
-            {
-                Vector2Int point = origin + new Vector2Int(x * distance, z * distance);
-                if (point.x < 0 || point.x >= BoardSize || point.y < 0 || point.y >= BoardSize) break;
-                positions.Add(point);
-            }
-        }
-
-        switch (type)
-        {
-            case ChessPieceType.Pawn: Add(-1, -1); Add(1, -1); break; // Black pawns attack toward rank 1.
-            case ChessPieceType.Knight:
-                foreach (Vector2Int move in new[] { new Vector2Int(1, 2), new Vector2Int(2, 1), new Vector2Int(2, -1), new Vector2Int(1, -2), new Vector2Int(-1, -2), new Vector2Int(-2, -1), new Vector2Int(-2, 1), new Vector2Int(-1, 2) }) Add(move.x, move.y);
-                break;
-            case ChessPieceType.Bishop: Slide(1, 1); Slide(1, -1); Slide(-1, 1); Slide(-1, -1); break;
-            case ChessPieceType.Rook: Slide(1, 0); Slide(-1, 0); Slide(0, 1); Slide(0, -1); break;
-            case ChessPieceType.Queen:
-                Slide(1, 0); Slide(-1, 0); Slide(0, 1); Slide(0, -1); Slide(1, 1); Slide(1, -1); Slide(-1, 1); Slide(-1, -1);
-                break;
-            case ChessPieceType.King:
-                for (int z = -1; z <= 1; z++) for (int x = -1; x <= 1; x++) if (x != 0 || z != 0) Add(x, z);
-                break;
-        }
-        return positions;
-    }
 }

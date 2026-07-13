@@ -1,9 +1,15 @@
-// ChessPieceSO.cs
 using UnityEngine;
 
 public abstract class ChessPieceSO : ScriptableObject
 {
-    [Header("공통 기물 데이터")]
-    public ChessPieceType pieceType; // 기물 종류 (폰, 나이트 등)
-    public GameObject prefab;        // 화면에 생성할 프리팹 에셋
+    [Header("Piece")]
+    public ChessPieceType pieceType;
+    public GameObject prefab;
+
+    [Header("Attack range")]
+    [Tooltip("Use Piece Type uses the Piece Type above. Override it only for a special attack pattern.")]
+    public AttackPatternType attackPattern = AttackPatternType.UsePieceType;
+    [Range(1, 7)] public int attackRange = 7;
+    [Tooltip("Only used by the Pawn pattern. Black pawns normally attack toward -Z.")]
+    [Range(-1, 1)] public int pawnForwardZ = -1;
 }
