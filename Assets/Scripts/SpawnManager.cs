@@ -1,127 +1,180 @@
-using UnityEngine;
 using System.Collections.Generic;
-
-[System.Serializable]
-public class ChessPieceData
-{
-    public GameObject instance;
-    public Vector2Int gridPos;
-    public string pieceType; // King, Pawn, Knight, Queen, Bishop, Rook, WhitePawn, WhiteKnight, WhiteBishop, WhiteRook, WhiteQueen
-    public int hp = 1;
-}
+using System.Linq;
+using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-    [Header("Black Enemy Prefabs")]
-    public GameObject chPWKing;
-    public GameObject chPBPawn;
-    public GameObject chPBKnight;
-    public GameObject chPBQueen;
+    private const int BoardSize = 8;
+    private const int MaxBlackPieces = 16;
 
-    [Header("White Buff Prefabs")]
-    public GameObject whitePawnPrefab; // 백의 폰 버프말 프리팹
+    [Header("ScriptableObject data")]
+    [SerializeField] private BlackPieceSO[] blackPieceData;
+    [SerializeField] private WhitePieceSO[] whitePieceData;
 
-    [Header("White Transform Prefabs")]
-    public GameObject whiteKnightPrefab; // 백의 변신 나이트 프리팹
-    public GameObject whiteBishopPrefab; // 백의 변신 비숍 프리팹
-    public GameObject whiteRookPrefab;   // 백의 변신 룩 프리팹
-    public GameObject whiteQueenPrefab;  // 백의 변신 퀸 프리팹
+    public readonly List<ChessPiece> activePieces = new();
 
-    [Header("Parent Transform")]
-    public Transform fieldChSD;
+    public int BlackPieceCount => activePieces.Count(piece => piece is BlackEnemyPiece);
+    public int QueenCount => activePieces.Count(piece => piece is BlackEnemyPiece && piece.PieceType == ChessPieceType.Queen);
 
-    [HideInInspector]
-    public List<ChessPieceData> activePieces = new List<ChessPieceData>();
-    [HideInInspector]
-    public ChessPieceData playerPiece;
-
-    public void ClearAllCharacters()
+    public void SpawnInitialBlackPieces(Vector2Int playerPosition, int turn)
     {
-        foreach (var piece in activePieces)
-        {
-            if (piece.instance != null) Destroy(piece.instance);
-        }
-        activePieces.Clear();
-
-        if (playerPiece != null && playerPiece.instance != null)
-        {
-            Destroy(playerPiece.instance);
-        }
-        playerPiece = null;
+        SpawnBlackOfType(ChessPieceType.Queen, playerPosition, turn);
+        SpawnBlackOfType(ChessPieceType.Knight, playerPosition, turn);
+        SpawnBlackOfType(ChessPieceType.Pawn, playerPosition, turn);
     }
 
-    public void SpawnPlayer(int x, int z)
+    public int SpawnBlackPieces(int requestedCount, Vector2Int playerPosition, int turn, bool forceQueen)
     {
-        if (chPWKing == null || fieldChSD == null) return;
+        int spawned = 0;
+        if (forceQueen && QueenCount < 3 && SpawnBlackOfType(ChessPieceType.Queen, playerPosition, turn) != null)
+            spawned++;
 
-        GameObject go = Instantiate(chPWKing, fieldChSD);
-        playerPiece = new ChessPieceData();
-        playerPiece.instance = go;
-        playerPiece.gridPos = new Vector2Int(x, z);
-        playerPiece.pieceType = "King";
-        playerPiece.hp = 1;
-
-        UpdateVisualPosition(playerPiece);
+        while (spawned < requestedCount && BlackPieceCount < MaxBlackPieces)
+        {
+            BlackPieceSO data = SelectWeightedBlackData();
+            if (data == null || SpawnPiece(data, GetRandomFreePosition(playerPosition), turn) == null) break;
+            spawned++;
+        }
+        return spawned;
     }
 
-    public void SpawnFirstTurn()
+    public bool TrySpawnBuffPiece(Vector2Int playerPosition, int turn, float chancePercent)
     {
-        ClearAllCharacters();
-        SpawnPlayer(4, 0); // E1 위치 고정 시작
+        if (HasWhitePiece<WhiteBuffPiece>() || Random.Range(0f, 100f) >= chancePercent) return false;
+        WhitePieceSO pawnData = whitePieceData.FirstOrDefault(data => data != null && data.pieceType == ChessPieceType.Pawn);
+        return pawnData != null && SpawnPiece(pawnData, GetRandomFreePosition(playerPosition), turn) != null;
+    }
 
-        List<Vector2Int> emptyPositions = new List<Vector2Int>();
-        for (int z = 0; z < 8; z++)
+    public bool TrySpawnTransformPiece(Vector2Int playerPosition, int turn, bool forceKnight)
+    {
+        if (HasWhitePiece<WhiteTransformPiece>()) return false;
+
+        List<WhitePieceSO> options = whitePieceData
+            .Where(data => data != null && data.pieceType != ChessPieceType.Pawn)
+            .ToList();
+        if (forceKnight)
+            options = options.Where(data => data.pieceType == ChessPieceType.Knight).ToList();
+
+        WhitePieceSO selected = SelectWeightedWhiteData(options);
+        return selected != null && SpawnPiece(selected, GetRandomFreePosition(playerPosition), turn) != null;
+    }
+
+    public void RepositionBlackPieces(Vector2Int playerPosition)
+    {
+        foreach (BlackEnemyPiece piece in activePieces.OfType<BlackEnemyPiece>().ToArray())
         {
-            for (int x = 0; x < 8; x++)
+            Vector2Int position = GetRandomFreePosition(playerPosition, piece);
+            if (position.x < 0) return;
+            SetPiecePosition(piece, position);
+        }
+    }
+
+    public void RemoveExpiredWhitePieces(int currentTurn)
+    {
+        foreach (ChessPiece piece in activePieces.Where(piece => piece is WhiteBuffPiece || piece is WhiteTransformPiece).ToArray())
+        {
+            if (piece.spawnedTurn < currentTurn)
+                RemovePiece(piece);
+        }
+    }
+
+    public ChessPiece SpawnPiece(ChessPieceSO data, Vector2Int gridPosition, int turn)
+    {
+        if (data == null || data.prefab == null || gridPosition.x < 0)
+        {
+            Debug.LogError("Spawn requires a valid SO, prefab, and free board position.");
+            return null;
+        }
+
+        // Keep the prefab's authored orientation (for example, a 2D chess sprite rotated 90° onto the board).
+        GameObject instance = Instantiate(data.prefab, GridToWorld(gridPosition), data.prefab.transform.rotation);
+        ChessPiece piece = instance.GetComponent<ChessPiece>();
+        if (piece == null)
+        {
+            Debug.LogError($"'{data.prefab.name}' requires a ChessPiece component.");
+            Destroy(instance);
+            return null;
+        }
+
+        piece.pieceData = data;
+        piece.gridPos = gridPosition;
+        piece.spawnedTurn = turn;
+        if (piece is BlackEnemyPiece enemy && data is BlackPieceSO blackData)
+            enemy.Initialize(blackData);
+
+        activePieces.Add(piece);
+        return piece;
+    }
+
+    public ChessPiece GetPieceAt(Vector2Int position)
+    {
+        activePieces.RemoveAll(piece => piece == null);
+        return activePieces.Find(piece => piece.gridPos == position);
+    }
+
+    public bool IsOccupied(Vector2Int position, ChessPiece ignoredPiece = null)
+    {
+        return activePieces.Any(piece => piece != null && piece != ignoredPiece && piece.gridPos == position);
+    }
+
+    public void RemovePiece(ChessPiece piece)
+    {
+        if (piece == null) return;
+        activePieces.Remove(piece);
+        Destroy(piece.gameObject);
+    }
+
+    private BlackEnemyPiece SpawnBlackOfType(ChessPieceType type, Vector2Int playerPosition, int turn)
+    {
+        if (BlackPieceCount >= MaxBlackPieces || (type == ChessPieceType.Queen && QueenCount >= 3)) return null;
+        BlackPieceSO data = blackPieceData.FirstOrDefault(item => item != null && item.pieceType == type);
+        return SpawnPiece(data, GetRandomFreePosition(playerPosition), turn) as BlackEnemyPiece;
+    }
+
+    private BlackPieceSO SelectWeightedBlackData()
+    {
+        return SelectWeighted(blackPieceData, data => data.spawnProbability);
+    }
+
+    private WhitePieceSO SelectWeightedWhiteData(List<WhitePieceSO> candidates)
+    {
+        return SelectWeighted(candidates, data => data.spawnProbability);
+    }
+
+    private T SelectWeighted<T>(IEnumerable<T> candidates, System.Func<T, float> getWeight) where T : ChessPieceSO
+    {
+        List<T> valid = candidates.Where(data => data != null && getWeight(data) > 0f).ToList();
+        float total = valid.Sum(getWeight);
+        if (total <= 0f) return null;
+
+        float roll = Random.Range(0f, total);
+        foreach (T data in valid)
+        {
+            roll -= getWeight(data);
+            if (roll <= 0f) return data;
+        }
+        return valid[valid.Count - 1];
+    }
+
+    private bool HasWhitePiece<T>() where T : ChessPiece => activePieces.Any(piece => piece is T);
+
+    private Vector2Int GetRandomFreePosition(Vector2Int playerPosition, ChessPiece ignoredPiece = null)
+    {
+        List<Vector2Int> free = new();
+        for (int z = 0; z < BoardSize; z++)
+            for (int x = 0; x < BoardSize; x++)
             {
-                if (x == 4 && z == 0) continue;
-                emptyPositions.Add(new Vector2Int(x, z));
+                Vector2Int position = new(x, z);
+                if (position != playerPosition && !IsOccupied(position, ignoredPiece)) free.Add(position);
             }
-        }
-        ShuffleList(emptyPositions);
-
-        // 1스테이지 1턴 기본 흑의 말 3개 생성
-        SpawnEnemy(chPBQueen, emptyPositions[0].x, emptyPositions[0].y, "Queen");
-        SpawnEnemy(chPBKnight, emptyPositions[1].x, emptyPositions[1].y, "Knight");
-        SpawnEnemy(chPBPawn, emptyPositions[2].x, emptyPositions[2].y, "Pawn");
-
-        ControlManager controlManager = Object.FindFirstObjectByType<ControlManager>();
-        if (controlManager != null)
-        {
-            controlManager.SetupPlayer(playerPiece.instance, 4, 0);
-        }
+        return free.Count == 0 ? new Vector2Int(-1, -1) : free[Random.Range(0, free.Count)];
     }
 
-    public void SpawnEnemy(GameObject prefab, int x, int z, string type)
+    private void SetPiecePosition(ChessPiece piece, Vector2Int position)
     {
-        if (prefab == null || fieldChSD == null) return;
-
-        GameObject go = Instantiate(prefab, fieldChSD);
-        ChessPieceData data = new ChessPieceData();
-        data.instance = go;
-        data.gridPos = new Vector2Int(x, z);
-        data.pieceType = type;
-        data.hp = 1;
-
-        activePieces.Add(data);
-        UpdateVisualPosition(data);
+        piece.gridPos = position;
+        piece.transform.position = GridToWorld(position);
     }
 
-    public void UpdateVisualPosition(ChessPieceData piece)
-    {
-        if (piece == null || piece.instance == null) return;
-        Vector3 localPos = new Vector3(piece.gridPos.x - 3.5f, 0.101f, piece.gridPos.y - 3.5f);
-        piece.instance.transform.localPosition = localPos;
-    }
-
-    private void ShuffleList(List<Vector2Int> list)
-    {
-        for (int i = 0; i < list.Count; i++)
-        {
-            Vector2Int temp = list[i];
-            int randomIndex = Random.Range(i, list.Count);
-            list[i] = list[randomIndex];
-            list[randomIndex] = temp;
-        }
-    }
+    private static Vector3 GridToWorld(Vector2Int position) => new(position.x - 3.5f, 0.101f, position.y - 3.5f);
 }

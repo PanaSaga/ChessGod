@@ -106,5 +106,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WhiteBuffPiece
   gridPos: {x: 0, y: 0}
   pieceData: {fileID: 11400000, guid: 913fd32afaf07b64cb0794b15e3820ea, type: 2}
+  spawnedTurn: 0
   attackBuffPower: 2
   buffDuration: 20

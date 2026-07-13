@@ -106,4 +106,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WhiteTransformPiece
   gridPos: {x: 0, y: 0}
   pieceData: {fileID: 11400000, guid: 3adca250dbd5cde40a386c116f23e155, type: 2}
+  spawnedTurn: 0
   transformDuration: 20

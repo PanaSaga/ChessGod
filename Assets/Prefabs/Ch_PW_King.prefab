@@ -106,6 +106,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPiece
   gridPos: {x: 0, y: 0}
   pieceData: {fileID: 11400000, guid: 132134b3c8f17be45a21671564a50244, type: 2}
+  spawnedTurn: 0
   hp: 3
   atk: 1
   currentRangeType: 0

@@ -1601,7 +1601,7 @@ Transform:
   m_GameObject: {fileID: 423356426}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.17666, y: -0.05, z: 0.45186}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2793,7 +2793,7 @@ Transform:
   m_GameObject: {fileID: 648139267}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.17666, y: -0.05, z: 0.45186}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3696,6 +3696,63 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 868687245}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &876211299
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5212569226212328258, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_Name
+      value: Ch_PW_King
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 64561f82a01943745a183931ca848df0, type: 3}
 --- !u!1 &888295340
 GameObject:
   m_ObjectHideFlags: 0
@@ -4999,7 +5056,7 @@ Transform:
   m_GameObject: {fileID: 1349783973}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.17666, y: 0.05, z: -0.45186}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5706,7 +5763,7 @@ Transform:
   m_GameObject: {fileID: 1456459473}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.17666, y: -0.05, z: 0.45186}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5724,22 +5781,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5df344e0f9e74a458d53d858881bbe7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpawnManager
-  chPWKing: {fileID: 5212569226212328258, guid: 64561f82a01943745a183931ca848df0, type: 3}
-  chPBPawn: {fileID: 5212569226212328258, guid: 64a78e4518568ed4294a245cb88081cf, type: 3}
-  chPBKnight: {fileID: 5212569226212328258, guid: 7e7f274d54584084a9a337a651960724, type: 3}
-  chPBQueen: {fileID: 5212569226212328258, guid: 1155821f05ce7a54b8764b7b5fdc8186, type: 3}
-  whitePawnPrefab: {fileID: 5212569226212328258, guid: db954ecc1b0482b428ba123bfbd21f75, type: 3}
-  whiteKnightPrefab: {fileID: 5212569226212328258, guid: 097ff908bafb57f42a805292731f0f47, type: 3}
-  whiteBishopPrefab: {fileID: 5212569226212328258, guid: a26803fb341b1c146b2a20dfb24d325c, type: 3}
-  whiteRookPrefab: {fileID: 5212569226212328258, guid: 97adb696759fa2340b1fa689d75e66ba, type: 3}
-  whiteQueenPrefab: {fileID: 5212569226212328258, guid: 3b889a9ee4580e34cb97d6c0792eff7e, type: 3}
-  fieldChSD: {fileID: 1219378357}
-  activePieces: []
-  playerPiece:
-    instance: {fileID: 0}
-    gridPos: {x: 0, y: 0}
-    pieceType: 
-    hp: 1
+  blackPieceData:
+  - {fileID: 11400000, guid: a7a3210eaaf47b145a4ee4ad739968ff, type: 2}
+  - {fileID: 11400000, guid: 82ef26a0920a0e8459bace4a36ba80cb, type: 2}
+  - {fileID: 11400000, guid: f800828668952274cb72799e7ce7ffe5, type: 2}
+  - {fileID: 11400000, guid: 93a1e1aa4acf27c4a958267119a20c5b, type: 2}
+  - {fileID: 11400000, guid: 6ef38ecd86e38dc4b846cda47a3b8b9f, type: 2}
+  - {fileID: 11400000, guid: d2433e6b543e70247a119b8210b35145, type: 2}
+  whitePieceData:
+  - {fileID: 11400000, guid: db19ed4af7ba32242987b5791fd36ae3, type: 2}
+  - {fileID: 11400000, guid: 7ed92825f07266146bb1f02a25855ea0, type: 2}
+  - {fileID: 11400000, guid: 3adca250dbd5cde40a386c116f23e155, type: 2}
+  - {fileID: 11400000, guid: 08b3c871fe7fe2b4e8f1f9533393aa6e, type: 2}
+  - {fileID: 11400000, guid: 913fd32afaf07b64cb0794b15e3820ea, type: 2}
 --- !u!1 &1497259455
 GameObject:
   m_ObjectHideFlags: 0
@@ -7223,19 +7277,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a56667bde81bd884d91afb316656086e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  playerData: {fileID: 11400000, guid: 132134b3c8f17be45a21671564a50244, type: 2}
   currentStage: 1
   currentTurn: 1
-  playerHp: 3
   playerScore: 0
-  playerAtk: 1
-  playerRangeType: King
   turnTimer: 10
   maxTurnTime: 10
   isSettling: 0
-  buffTimer: 0
-  isBuffActive: 0
-  transformTimer: 0
-  isTransformActive: 0
 --- !u!1 &1901914850
 GameObject:
   m_ObjectHideFlags: 0
@@ -8031,3 +8079,4 @@ SceneRoots:
   - {fileID: 682862336}
   - {fileID: 1552980036}
   - {fileID: 1219378357}
+  - {fileID: 876211299}

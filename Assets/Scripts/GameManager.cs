@@ -1,424 +1,211 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
+    private const int BoardSize = 8;
+    private const int TurnClearScore = 30;
+
     public static GameManager Instance { get; private set; }
 
-    [Header("Game Flow Data")]
+    [Header("ScriptableObject data")]
+    [SerializeField] private PlayerPieceSO playerData;
+
+    [Header("Game state")]
     public int currentStage = 1;
     public int currentTurn = 1;
-
-    [Header("Player Status")]
-    public int playerHp = 3;
-    public int playerScore = 0;
-    public int playerAtk = 1;
-    public string playerRangeType = "King";
-
-    [Header("Timer Systems")]
+    public int playerScore;
+    public int defeatedBlackPieceCount;
     public float turnTimer = 10f;
     public float maxTurnTime = 10f;
-    public bool isSettling = false;
-
-    [Header("Buff Systems")]
-    public float buffTimer = 0f;
-    public bool isBuffActive = false;
-    public float transformTimer = 0f;
-    public bool isTransformActive = false;
+    public bool isSettling;
+    public bool isGameOver;
 
     private SpawnManager spawnManager;
     private ControlManager controlManager;
-    private bool queueQueenSpawn = false;
+    private PlayerPiece playerPiece;
+    private bool forceQueenNextSpawn;
+    private int turnsWithoutQueen;
+    private int forceKnightTransformTurns;
 
-    void Awake()
+    private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
     }
 
-    void Start()
+    private void Start()
     {
-        spawnManager = Object.FindFirstObjectByType<SpawnManager>();
-        controlManager = Object.FindFirstObjectByType<ControlManager>();
-        StartStage(currentStage);
+        spawnManager = FindFirstObjectByType<SpawnManager>();
+        controlManager = FindFirstObjectByType<ControlManager>();
+        playerPiece = FindFirstObjectByType<PlayerPiece>();
+        if (spawnManager == null || controlManager == null || playerPiece == null)
+        {
+            Debug.LogError("GameManager requires SpawnManager, ControlManager, and PlayerPiece in the scene.");
+            enabled = false;
+            return;
+        }
+
+        if (playerData != null) playerPiece.pieceData = playerData;
+        controlManager.SetupPlayer(playerPiece, 4, 0);
+        StartStage(1);
+        spawnManager.SpawnInitialBlackPieces(controlManager.GetPlayerGridPosition(), currentTurn);
     }
 
-    void Update()
+    private void Update()
     {
-        if (isSettling) return;
-
-        if (isBuffActive)
-        {
-            buffTimer -= Time.deltaTime;
-            if (buffTimer <= 0f)
-            {
-                isBuffActive = false;
-                playerAtk = 1;
-                Debug.Log("Buff Expired. Attack power restored to 1.");
-            }
-        }
-
-        if (isTransformActive)
-        {
-            transformTimer -= Time.deltaTime;
-            if (transformTimer <= 0f)
-            {
-                isTransformActive = false;
-                playerRangeType = "King";
-                Debug.Log("Transformation Expired. Attack range restored to King.");
-            }
-        }
-
+        if (isSettling || isGameOver) return;
         turnTimer -= Time.deltaTime;
-
-        Keyboard currentKeyboard = Keyboard.current;
-        bool spacePressed = (currentKeyboard != null && currentKeyboard.spaceKey.wasPressedThisFrame);
-
-        if (turnTimer <= 0f || spacePressed)
-        {
+        if (turnTimer <= 0f || (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame))
             StartSettlement();
-        }
-    }
-
-    public void StartStage(int stageNumber)
-    {
-        currentStage = stageNumber;
-        currentTurn = 1;
-        playerHp = 3;
-        maxTurnTime = Mathf.Max(5f, 10f - (currentStage - 1));
-        turnTimer = maxTurnTime;
-
-        if (spawnManager != null)
-        {
-            spawnManager.SpawnFirstTurn();
-        }
     }
 
     public void OnPlayerMoved(int x, int z)
     {
-        if (spawnManager == null) return;
+        if (isSettling || isGameOver) return;
+        ChessPiece pickedPiece = spawnManager.GetPieceAt(new Vector2Int(x, z));
+        if (pickedPiece == null || pickedPiece is BlackEnemyPiece || !(pickedPiece.pieceData is WhitePieceSO)) return;
 
-        // ChessRemove 오타를 ChessPieceData로 정상 수정했습니다.
-        List<ChessPieceData> toRemove = new List<ChessPieceData>();
-        List<ChessPieceData> piecesCopy = new List<ChessPieceData>(spawnManager.activePieces);
+        if (pickedPiece is WhiteBuffPiece buff)
+            playerPiece.ApplyBuff(buff.buffDuration, buff.attackBuffPower);
+        else if (pickedPiece is WhiteTransformPiece transform)
+            playerPiece.ApplyTransform(transform.transformDuration, transform.CurrentTransformType);
+        else return;
 
-        foreach (var piece in piecesCopy)
-        {
-            if (piece.gridPos.x == x && piece.gridPos.y == z)
-            {
-                if (piece.pieceType == "WhitePawn")
-                {
-                    isBuffActive = true;
-                    buffTimer = 20f;
-                    playerAtk = 2;
-                    Debug.Log("Acquired White Pawn. Attack Power becomes 2 for 20 seconds.");
-                    toRemove.Add(piece);
-                }
-                else if (piece.pieceType == "WhiteKnight" || piece.pieceType == "WhiteBishop" || piece.pieceType == "WhiteRook" || piece.pieceType == "WhiteQueen")
-                {
-                    isTransformActive = true;
-                    transformTimer = 20f;
-
-                    if (piece.pieceType == "WhiteKnight") playerRangeType = "Knight";
-                    else if (piece.pieceType == "WhiteBishop") playerRangeType = "Bishop";
-                    else if (piece.pieceType == "WhiteRook") playerRangeType = "Rook";
-                    else if (piece.pieceType == "WhiteQueen") playerRangeType = "Queen";
-
-                    Debug.Log("Acquired Transformation Piece. Range Mode changed to: " + playerRangeType + " for 20 seconds.");
-                    toRemove.Add(piece);
-                }
-            }
-        }
-
-        foreach (var item in toRemove)
-        {
-            if (item.instance != null) Destroy(item.instance);
-            spawnManager.activePieces.Remove(item);
-        }
+        spawnManager.RemovePiece(pickedPiece);
     }
 
     private void StartSettlement()
     {
+        if (isSettling || isGameOver) return;
         isSettling = true;
-        Debug.Log("Turn settlement activated. Current Turn: " + currentTurn);
 
-        Vector2Int playerPos = Vector2Int.zero;
-        if (controlManager != null)
+        ResolveBlackAttacks();
+        if (playerPiece.hp <= 0)
         {
-            playerPos = controlManager.GetPlayerGridPosition();
+            GameOver();
+            return;
         }
 
-        bool playerHit = false;
-        foreach (var piece in spawnManager.activePieces)
-        {
-            if (piece.pieceType == "Pawn" || piece.pieceType == "Knight" || piece.pieceType == "Queen")
-            {
-                if (CheckAttackRange(piece.pieceType, piece.gridPos, playerPos))
-                {
-                    playerHit = true;
-                }
-            }
-        }
-
-        if (playerHit)
-        {
-            playerHp--;
-            Debug.Log("Player under attack. Current HP: " + playerHp);
-            if (playerHp <= 0)
-            {
-                Debug.Log("Player HP is 0. Game Over. Returning to Lobby.");
-                isSettling = false;
-                return;
-            }
-        }
-
-        List<ChessPieceData> deadEnemies = new List<ChessPieceData>();
-        int currentAtk = isBuffActive ? 2 : 1;
-        string currentRange = isTransformActive ? playerRangeType : "King";
-
-        foreach (var piece in spawnManager.activePieces)
-        {
-            if (piece.pieceType == "Pawn" || piece.pieceType == "Knight" || piece.pieceType == "Queen")
-            {
-                if (CheckAttackRange(currentRange, playerPos, piece.gridPos))
-                {
-                    piece.hp -= currentAtk;
-                    if (piece.hp <= 0)
-                    {
-                        deadEnemies.Add(piece);
-                    }
-                }
-            }
-        }
-
-        foreach (var enemy in deadEnemies)
-        {
-            int scoreGain = 10;
-            if (enemy.pieceType == "Knight") scoreGain = 20;
-            if (enemy.pieceType == "Queen") scoreGain = 50;
-
-            playerScore += scoreGain;
-            Debug.Log("Defeated " + enemy.pieceType + ". Gained Score: " + scoreGain);
-
-            if (enemy.instance != null) Destroy(enemy.instance);
-            spawnManager.activePieces.Remove(enemy);
-        }
-
-        playerScore += 100;
-        Debug.Log("Turn clear score gained. Total Score: " + playerScore);
-
-        ProcessNextTurnSetup(playerPos);
+        ResolvePlayerAttack();
+        playerScore += TurnClearScore;
+        SetupNextTurn();
     }
 
-    private void ProcessNextTurnSetup(Vector2Int playerPos)
+    private void ResolveBlackAttacks()
     {
+        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
+        bool playerHit = spawnManager.activePieces
+            .OfType<BlackEnemyPiece>()
+            .Any(enemy => GetAttackPositions(enemy.PieceType, enemy.gridPos).Contains(playerPosition));
+
+        // Even if multiple enemies cover the player, damage is applied only once per turn.
+        if (playerHit) playerPiece.TakeDamage();
+    }
+
+    private void ResolvePlayerAttack()
+    {
+        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
+        HashSet<Vector2Int> targets = GetAttackPositions(playerPiece.currentRangeType, playerPosition);
+
+        foreach (BlackEnemyPiece enemy in spawnManager.activePieces.OfType<BlackEnemyPiece>().ToArray())
+        {
+            if (!targets.Contains(enemy.gridPos)) continue;
+            if (!enemy.TakeDamage(playerPiece.atk)) continue;
+
+            playerScore += enemy.scoreValue;
+            defeatedBlackPieceCount++;
+            spawnManager.RemovePiece(enemy);
+        }
+    }
+
+    private void SetupNextTurn()
+    {
+        int completedTurn = currentTurn;
         currentTurn++;
-
-        if ((currentTurn - 1) % 10 == 0 && currentTurn > 1)
+        // Stage 1 contains turns 1-10; stage 2 starts after turn 10 is cleared.
+        bool stageRaised = completedTurn % 10 == 0;
+        if (stageRaised)
         {
-            currentStage++;
-            maxTurnTime = Mathf.Max(5f, 10f - (currentStage - 1));
-            queueQueenSpawn = true;
-            Debug.Log("Stage Up. Current Stage: " + currentStage + ", Turn Time: " + maxTurnTime);
+            StartStage(currentStage + 1);
+            forceQueenNextSpawn = true;
         }
 
-        if (spawnManager != null)
+        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
+        spawnManager.RemoveExpiredWhitePieces(currentTurn);
+        spawnManager.RepositionBlackPieces(playerPosition);
+
+        bool queenExists = spawnManager.QueenCount > 0;
+        turnsWithoutQueen = queenExists ? 0 : turnsWithoutQueen + 1;
+        bool mustSpawnQueen = forceQueenNextSpawn || turnsWithoutQueen >= 3;
+        spawnManager.SpawnBlackPieces(currentStage, playerPosition, currentTurn, mustSpawnQueen);
+        forceQueenNextSpawn = false;
+
+        if (spawnManager.QueenCount >= 3) forceKnightTransformTurns = 5;
+        float buffChance = spawnManager.BlackPieceCount >= 6 ? 100f : Mathf.Min(30f, 10f + (currentStage - 1) * 5f);
+        spawnManager.TrySpawnBuffPiece(playerPosition, currentTurn, buffChance);
+
+        if (completedTurn % 5 == 0)
         {
-            List<ChessPieceData> survivingBlacks = new List<ChessPieceData>();
-            List<ChessPieceData> itemsToClear = new List<ChessPieceData>();
-
-            foreach (var piece in spawnManager.activePieces)
-            {
-                if (piece.pieceType == "Pawn" || piece.pieceType == "Knight" || piece.pieceType == "Queen")
-                {
-                    survivingBlacks.Add(piece);
-                }
-                else
-                {
-                    itemsToClear.Add(piece);
-                }
-            }
-
-            foreach (var item in itemsToClear)
-            {
-                if (item.instance != null) Destroy(item.instance);
-                spawnManager.activePieces.Remove(item);
-            }
-
-            List<Vector2Int> availableSlots = new List<Vector2Int>();
-            bool safeZonePass = false;
-            int infinitePreventCounter = 0;
-
-            while (!safeZonePass && infinitePreventCounter < 100)
-            {
-                infinitePreventCounter++;
-                availableSlots.Clear();
-
-                for (int z = 0; z < 8; z++)
-                {
-                    for (int x = 0; x < 8; x++)
-                    {
-                        if (x == playerPos.x && z == playerPos.y) continue;
-                        availableSlots.Add(new Vector2Int(x, z));
-                    }
-                }
-
-                for (int i = 0; i < availableSlots.Count; i++)
-                {
-                    Vector2Int temp = availableSlots[i];
-                    int r = Random.Range(i, availableSlots.Count);
-                    availableSlots[i] = availableSlots[r];
-                    availableSlots[r] = temp;
-                }
-
-                int slotIndex = 0;
-                foreach (var black in survivingBlacks)
-                {
-                    black.gridPos = availableSlots[slotIndex++];
-                }
-
-                int newSpawnsCount = currentStage;
-                if (survivingBlacks.Count + newSpawnsCount > 16)
-                {
-                    newSpawnsCount = 16 - survivingBlacks.Count;
-                }
-
-                List<string> mockNewTypes = new List<string>();
-                bool forceQueen = queueQueenSpawn;
-                for (int i = 0; i < newSpawnsCount; i++)
-                {
-                    if (forceQueen)
-                    {
-                        mockNewTypes.Add("Queen");
-                        forceQueen = false;
-                    }
-                    else
-                    {
-                        mockNewTypes.Add(Random.Range(0, 2) == 0 ? "Pawn" : "Knight");
-                    }
-                }
-
-                List<Vector2Int> testPositions = new List<Vector2Int>();
-                List<string> testTypes = new List<string>();
-
-                foreach (var b in survivingBlacks)
-                {
-                    testPositions.Add(b.gridPos);
-                    testTypes.Add(b.pieceType);
-                }
-                for (int i = 0; i < mockNewTypes.Count; i++)
-                {
-                    testPositions.Add(availableSlots[slotIndex + i]);
-                    testTypes.Add(mockNewTypes[i]);
-                }
-
-                int safeTiles = 0;
-                for (int z = 0; z < 8; z++)
-                {
-                    for (int x = 0; x < 8; x++)
-                    {
-                        Vector2Int checkTile = new Vector2Int(x, z);
-                        bool isThreatened = false;
-                        for (int k = 0; k < testPositions.Count; k++)
-                        {
-                            if (CheckAttackRange(testTypes[k], testPositions[k], checkTile))
-                            {
-                                isThreatened = true;
-                                break;
-                            }
-                        }
-                        if (!isThreatened) safeTiles++;
-                    }
-                }
-
-                if (safeTiles >= 8)
-                {
-                    safeZonePass = true;
-
-                    foreach (var black in survivingBlacks)
-                    {
-                        spawnManager.UpdateVisualPosition(black);
-                    }
-
-                    for (int i = 0; i < mockNewTypes.Count; i++)
-                    {
-                        Vector2Int pos = availableSlots[slotIndex + i];
-                        GameObject prefab = spawnManager.chPBPawn;
-                        if (mockNewTypes[i] == "Knight") prefab = spawnManager.chPBKnight;
-                        if (mockNewTypes[i] == "Queen") prefab = spawnManager.chPBQueen;
-
-                        spawnManager.SpawnEnemy(prefab, pos.x, pos.y, mockNewTypes[i]);
-                    }
-
-                    if (queueQueenSpawn) queueQueenSpawn = false;
-                    slotIndex += mockNewTypes.Count;
-
-                    if (Random.value < 0.20f && slotIndex < availableSlots.Count)
-                    {
-                        Vector2Int pos = availableSlots[slotIndex++];
-                        spawnManager.SpawnEnemy(spawnManager.whitePawnPrefab, pos.x, pos.y, "WhitePawn");
-                    }
-
-                    if (currentStage % 5 == 0 && (currentTurn - 1) % 10 == 1 && slotIndex < availableSlots.Count)
-                    {
-                        Vector2Int pos = availableSlots[slotIndex++];
-                        int randTransform = Random.Range(0, 4);
-                        GameObject targetPrefab = null;
-                        string targetType = "";
-
-                        if (randTransform == 0) { targetPrefab = spawnManager.whiteKnightPrefab; targetType = "WhiteKnight"; }
-                        else if (randTransform == 1) { targetPrefab = spawnManager.whiteBishopPrefab; targetType = "WhiteBishop"; }
-                        else if (randTransform == 2) { targetPrefab = spawnManager.whiteRookPrefab; targetType = "WhiteRook"; }
-                        else if (randTransform == 3) { targetPrefab = spawnManager.whiteQueenPrefab; targetType = "WhiteQueen"; }
-
-                        spawnManager.SpawnEnemy(targetPrefab, pos.x, pos.y, targetType);
-                    }
-                }
-            }
+            bool forceKnight = forceKnightTransformTurns > 0;
+            spawnManager.TrySpawnTransformPiece(playerPosition, currentTurn, forceKnight);
         }
+        if (forceKnightTransformTurns > 0) forceKnightTransformTurns--;
 
-        turnTimer = maxTurnTime;
         isSettling = false;
-        Debug.Log("Next Turn initialized. Turn: " + currentTurn);
+        turnTimer = maxTurnTime;
     }
 
-    private bool CheckAttackRange(string rangeType, Vector2Int origin, Vector2Int target)
+    private void StartStage(int stage)
     {
-        int dx = Mathf.Abs(origin.x - target.x);
-        int dy = Mathf.Abs(origin.y - target.y);
+        currentStage = stage;
+        maxTurnTime = Mathf.Max(5f, 10f - (stage - 1));
+        turnTimer = maxTurnTime;
+    }
 
-        if (rangeType == "King")
+    private void GameOver()
+    {
+        isGameOver = true;
+        isSettling = true;
+        Debug.Log($"Game Over. Final score: {playerScore}");
+        // Connect the lobby scene/UI transition here when it is available.
+    }
+
+    private static HashSet<Vector2Int> GetAttackPositions(ChessPieceType type, Vector2Int origin)
+    {
+        var positions = new HashSet<Vector2Int>();
+        void Add(int x, int z)
         {
-            return dx <= 1 && dy <= 1;
+            Vector2Int point = origin + new Vector2Int(x, z);
+            if (point.x >= 0 && point.x < BoardSize && point.y >= 0 && point.y < BoardSize) positions.Add(point);
         }
-        if (rangeType == "Pawn")
+        void Slide(int x, int z)
         {
-            return dx == 1 && dy == 1;
+            for (int distance = 1; distance < BoardSize; distance++)
+            {
+                Vector2Int point = origin + new Vector2Int(x * distance, z * distance);
+                if (point.x < 0 || point.x >= BoardSize || point.y < 0 || point.y >= BoardSize) break;
+                positions.Add(point);
+            }
         }
-        if (rangeType == "Knight")
+
+        switch (type)
         {
-            return (dx == 1 && dy == 2) || (dx == 2 && dy == 1);
+            case ChessPieceType.Pawn: Add(-1, -1); Add(1, -1); break; // Black pawns attack toward rank 1.
+            case ChessPieceType.Knight:
+                foreach (Vector2Int move in new[] { new Vector2Int(1, 2), new Vector2Int(2, 1), new Vector2Int(2, -1), new Vector2Int(1, -2), new Vector2Int(-1, -2), new Vector2Int(-2, -1), new Vector2Int(-2, 1), new Vector2Int(-1, 2) }) Add(move.x, move.y);
+                break;
+            case ChessPieceType.Bishop: Slide(1, 1); Slide(1, -1); Slide(-1, 1); Slide(-1, -1); break;
+            case ChessPieceType.Rook: Slide(1, 0); Slide(-1, 0); Slide(0, 1); Slide(0, -1); break;
+            case ChessPieceType.Queen:
+                Slide(1, 0); Slide(-1, 0); Slide(0, 1); Slide(0, -1); Slide(1, 1); Slide(1, -1); Slide(-1, 1); Slide(-1, -1);
+                break;
+            case ChessPieceType.King:
+                for (int z = -1; z <= 1; z++) for (int x = -1; x <= 1; x++) if (x != 0 || z != 0) Add(x, z);
+                break;
         }
-        if (rangeType == "Bishop")
-        {
-            return dx == dy;
-        }
-        if (rangeType == "Rook")
-        {
-            return origin.x == target.x || origin.y == target.y;
-        }
-        if (rangeType == "Queen")
-        {
-            return origin.x == target.x || origin.y == target.y || dx == dy;
-        }
-        return false;
+        return positions;
     }
 }

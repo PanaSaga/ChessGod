@@ -106,5 +106,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlackEnemyPiece
   gridPos: {x: 0, y: 0}
   pieceData: {fileID: 11400000, guid: 93a1e1aa4acf27c4a958267119a20c5b, type: 2}
+  spawnedTurn: 0
   currentHp: 0
   scoreValue: 0
