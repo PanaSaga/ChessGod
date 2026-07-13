@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6054148842886853947}
   - component: {fileID: 2527817450375599463}
+  - component: {fileID: -6613362501278163630}
   m_Layer: 0
   m_Name: Ch_PW_Queen
   m_TagString: Untagged
@@ -91,3 +92,18 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &-6613362501278163630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5212569226212328258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b615f6686cf47f846823e214d61064ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WhiteTransformPiece
+  gridPos: {x: 0, y: 0}
+  pieceData: {fileID: 11400000, guid: 3adca250dbd5cde40a386c116f23e155, type: 2}
+  transformDuration: 20

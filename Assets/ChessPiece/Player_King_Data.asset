@@ -9,9 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 149a0d92b80ac8243bc9c1fe20693e56, type: 3}
-  m_Name: CH_W_King
-  m_EditorClassIdentifier: Assembly-CSharp::WhitePieceSO
+  m_Script: {fileID: 11500000, guid: 0fc0b7e2a716d6540a805769d799be32, type: 3}
+  m_Name: Player_King_Data
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPieceSO
   pieceType: 0
-  prefab: {fileID: 0}
-  duration: 20
+  prefab: {fileID: 5212569226212328258, guid: 64561f82a01943745a183931ca848df0, type: 3}

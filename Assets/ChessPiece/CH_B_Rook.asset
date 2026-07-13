@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa8385b5260439a4aa18ccf81cc5b178, type: 3}
   m_Name: CH_B_Rook
   m_EditorClassIdentifier: Assembly-CSharp::BlackPieceSO
-  pieceType: 0
-  prefab: {fileID: 0}
-  defaultHp: 1
-  scoreValue: 10
+  pieceType: 4
+  prefab: {fileID: 5212569226212328258, guid: 255aed2ea9fd99542b87518dc4b6c847, type: 3}
+  defaultHp: 2
+  scoreValue: 50
+  spawnProbability: 15

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 149a0d92b80ac8243bc9c1fe20693e56, type: 3}
   m_Name: CH_W_Pawn
   m_EditorClassIdentifier: Assembly-CSharp::WhitePieceSO
-  pieceType: 0
-  prefab: {fileID: 0}
+  pieceType: 1
+  prefab: {fileID: 5212569226212328258, guid: db954ecc1b0482b428ba123bfbd21f75, type: 3}
   duration: 20
+  spawnProbability: 10

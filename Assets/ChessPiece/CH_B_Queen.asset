@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa8385b5260439a4aa18ccf81cc5b178, type: 3}
   m_Name: CH_B_Queen
   m_EditorClassIdentifier: Assembly-CSharp::BlackPieceSO
-  pieceType: 0
-  prefab: {fileID: 0}
+  pieceType: 5
+  prefab: {fileID: 5212569226212328258, guid: 1155821f05ce7a54b8764b7b5fdc8186, type: 3}
   defaultHp: 1
-  scoreValue: 10
+  scoreValue: 90
+  spawnProbability: 5

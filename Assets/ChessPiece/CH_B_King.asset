@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: CH_B_King
   m_EditorClassIdentifier: Assembly-CSharp::BlackPieceSO
   pieceType: 0
-  prefab: {fileID: 0}
+  prefab: {fileID: 5212569226212328258, guid: 8074a3ba2a6919e4e8c10b8ab375933a, type: 3}
   defaultHp: 1
-  scoreValue: 10
+  scoreValue: 100
+  spawnProbability: 5

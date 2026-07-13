@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6054148842886853947}
   - component: {fileID: 2527817450375599463}
+  - component: {fileID: 8416088903282338049}
   m_Layer: 0
   m_Name: Ch_PW_King
   m_TagString: Untagged
@@ -91,3 +92,24 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &8416088903282338049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5212569226212328258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1064d1f9ff3dc5246a6ff8f40136e539, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPiece
+  gridPos: {x: 0, y: 0}
+  pieceData: {fileID: 11400000, guid: 132134b3c8f17be45a21671564a50244, type: 2}
+  hp: 3
+  atk: 1
+  currentRangeType: 0
+  buffTimer: 0
+  isBuffActive: 0
+  transformTimer: 0
+  isTransformActive: 0
