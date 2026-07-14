@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 // Reads GameManager state every frame and writes it into the HUD. Owns no game data itself.
@@ -12,6 +13,13 @@ public class InGameUIManager : MonoBehaviour
     {
         public ChessPieceType pieceType;
         public TMP_Text countText;
+    }
+
+    [Serializable]
+    private struct PieceIconEntry
+    {
+        public ChessPieceType pieceType;
+        public Sprite icon;
     }
 
     [Header("Stage / Turn / Score")]
@@ -26,6 +34,41 @@ public class InGameUIManager : MonoBehaviour
 
     [Header("Defeated piece counts")]
     [SerializeField] private List<DefeatedCountSlot> defeatedCountSlots = new();
+
+    [Header("Buff status (White Pawn)")]
+    [SerializeField] private Image buffIconImage;
+    [SerializeField] private Sprite buffOnIcon;
+    [SerializeField] private Sprite buffOffIcon;
+    [SerializeField] private TMP_Text buffDurationText;
+
+    [Header("Transform status")]
+    [SerializeField] private Image transformIconImage;
+    [Tooltip("Shown when no transform is active (King).")]
+    [SerializeField] private Sprite transformIdleIcon;
+    [SerializeField] private List<PieceIconEntry> transformIcons = new();
+    [SerializeField] private TMP_Text transformDurationText;
+
+    [Header("Player avatar")]
+    [SerializeField] private Image avatarImage;
+    [Tooltip("Normal: no attack, no hit, or before the first turn resolves.")]
+    [FormerlySerializedAs("avatarIdle")]
+    [SerializeField] private Sprite avatarNormal;
+    [Tooltip("Attack: attacked an enemy and was not hit.")]
+    [FormerlySerializedAs("avatarHappy")]
+    [SerializeField] private Sprite avatarAttack;
+    [Tooltip("Mutual Attack: attacked an enemy and was also hit.")]
+    [FormerlySerializedAs("avatarAngry")]
+    [SerializeField] private Sprite avatarMutualAttack;
+    [Tooltip("Hit: did not attack an enemy but was hit.")]
+    [FormerlySerializedAs("avatarSurprised")]
+    [SerializeField] private Sprite avatarHit;
+    [Tooltip("Defeat: game over.")]
+    [FormerlySerializedAs("avatarSad")]
+    [SerializeField] private Sprite avatarDefeat;
+    [Tooltip("How long Attack/Mutual Attack/Hit stays before returning to Normal.")]
+    [SerializeField, Min(0f)] private float avatarResultHoldSeconds = 1f;
+
+    private PlayerPiece playerPiece;
 
     private void Update()
     {
@@ -47,5 +90,41 @@ public class InGameUIManager : MonoBehaviour
             if (slot.countText == null) continue;
             slot.countText.text = gameManager.GetDefeatedCount(slot.pieceType).ToString("00");
         }
+
+        if (playerPiece == null) playerPiece = FindFirstObjectByType<PlayerPiece>();
+        if (playerPiece == null) return;
+
+        if (buffIconImage != null) buffIconImage.sprite = playerPiece.isBuffActive ? buffOnIcon : buffOffIcon;
+        if (buffDurationText != null)
+            buffDurationText.text = playerPiece.isBuffActive ? Mathf.Max(0f, playerPiece.buffTimer).ToString("F1") : "-";
+
+        if (transformIconImage != null)
+            transformIconImage.sprite = playerPiece.isTransformActive
+                ? GetTransformIcon(playerPiece.transformedAttackData.pieceType)
+                : transformIdleIcon;
+        if (transformDurationText != null)
+            transformDurationText.text = playerPiece.isTransformActive ? Mathf.Max(0f, playerPiece.transformTimer).ToString("F1") : "-";
+
+        if (avatarImage != null) avatarImage.sprite = GetAvatarIcon(gameManager);
+    }
+
+    private Sprite GetTransformIcon(ChessPieceType pieceType)
+    {
+        foreach (PieceIconEntry entry in transformIcons)
+            if (entry.pieceType == pieceType) return entry.icon;
+        return transformIdleIcon;
+    }
+
+    private Sprite GetAvatarIcon(GameManager gameManager)
+    {
+        if (gameManager.isGameOver || gameManager.LastTurnFatal) return avatarDefeat;
+        if (Time.time - gameManager.LastSettlementTime >= avatarResultHoldSeconds) return avatarNormal;
+
+        bool attacked = gameManager.LastTurnAttackHitEnemy;
+        bool wasHit = gameManager.LastTurnPlayerWasHit;
+        if (attacked && !wasHit) return avatarAttack;
+        if (attacked && wasHit) return avatarMutualAttack;
+        if (!attacked && wasHit) return avatarHit;
+        return avatarNormal;
     }
 }

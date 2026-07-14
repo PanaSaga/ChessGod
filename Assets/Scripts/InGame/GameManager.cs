@@ -24,6 +24,13 @@ public class GameManager : MonoBehaviour
     public bool isSettling;
     public bool isGameOver;
 
+    // Result of the most recently resolved turn, used by the avatar UI.
+    // Predicted the instant the turn ends (see PreviewTurnResult) so the avatar reacts immediately, before the settlement preview delay.
+    public bool LastTurnAttackHitEnemy { get; private set; }
+    public bool LastTurnPlayerWasHit { get; private set; }
+    public bool LastTurnFatal { get; private set; }
+    public float LastSettlementTime { get; private set; } = float.NegativeInfinity;
+
     [Header("Turn settlement")]
     [Tooltip("Time in seconds that all player/enemy attack ranges remain visible before damage is resolved.")]
     [SerializeField, Min(0f)] private float settlementPreviewDuration = 0.5f;
@@ -87,7 +94,27 @@ public class GameManager : MonoBehaviour
     {
         if (isSettling || isGameOver) return;
         isSettling = true;
+        PreviewTurnResult();
         StartCoroutine(SettlementRoutine());
+    }
+
+    // Board positions are frozen for the rest of the turn once settlement starts,
+    // so the outcome can be predicted immediately for the avatar UI instead of waiting for the preview delay.
+    private void PreviewTurnResult()
+    {
+        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
+
+        bool wasHit = spawnManager.activePieces
+            .OfType<BlackEnemyPiece>()
+            .Any(enemy => ChessAttackResolver.GetAttackCells(enemy.pieceData, enemy.gridPos).Contains(playerPosition));
+
+        HashSet<Vector2Int> targets = ChessAttackResolver.GetAttackCells(playerPiece.CurrentAttackData, playerPosition);
+        bool attackedEnemy = spawnManager.activePieces.OfType<BlackEnemyPiece>().Any(enemy => targets.Contains(enemy.gridPos));
+
+        LastTurnPlayerWasHit = wasHit;
+        LastTurnAttackHitEnemy = attackedEnemy;
+        LastTurnFatal = wasHit && playerPiece.hp <= 1;
+        LastSettlementTime = Time.time;
     }
 
     private IEnumerator SettlementRoutine()
