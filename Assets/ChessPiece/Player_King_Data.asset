@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fc0b7e2a716d6540a805769d799be32, type: 3}
+  m_Name: Player_King_Data
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPieceSO
+  pieceType: 0
+  prefab: {fileID: 5212569226212328258, guid: 64561f82a01943745a183931ca848df0, type: 3}
