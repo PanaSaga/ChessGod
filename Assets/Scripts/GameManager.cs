@@ -34,6 +34,7 @@ public class GameManager : MonoBehaviour
     private bool forceQueenNextSpawn;
     private int turnsWithoutQueen;
     private int forceKnightTransformTurns;
+    private readonly Dictionary<ChessPieceType, int> defeatedCountByType = new();
 
     private void Awake()
     {
@@ -129,6 +130,7 @@ public class GameManager : MonoBehaviour
 
             playerScore += enemy.scoreValue;
             defeatedBlackPieceCount++;
+            defeatedCountByType[enemy.PieceType] = defeatedCountByType.GetValueOrDefault(enemy.PieceType) + 1;
             if (enemy.PieceType == ChessPieceType.King)
                 playerPiece.RestoreHp(1);
             spawnManager.RemovePiece(enemy);
@@ -178,6 +180,8 @@ public class GameManager : MonoBehaviour
         maxTurnTime = Mathf.Max(5f, 10f - (stage - 1));
         turnTimer = maxTurnTime;
     }
+
+    public int GetDefeatedCount(ChessPieceType pieceType) => defeatedCountByType.GetValueOrDefault(pieceType);
 
     private void GameOver()
     {
