@@ -22,6 +22,16 @@ public class InGameUIManager : MonoBehaviour
         public Sprite icon;
     }
 
+    [Serializable]
+    private struct AliveCountSlot
+    {
+        public ChessPieceType pieceType;
+        [Tooltip("Up to 5 pip icon GameObjects, shown left to right in order.")]
+        public List<GameObject> pipIcons;
+        [Tooltip("Shows \"+N\" when the alive count exceeds the number of pip icons.")]
+        public TMP_Text overflowText;
+    }
+
     [Header("Stage / Turn / Score")]
     [SerializeField] private TMP_Text stageText;
     [SerializeField] private TMP_Text turnText;
@@ -34,6 +44,9 @@ public class InGameUIManager : MonoBehaviour
 
     [Header("Defeated piece counts")]
     [SerializeField] private List<DefeatedCountSlot> defeatedCountSlots = new();
+
+    [Header("Alive piece counts")]
+    [SerializeField] private List<AliveCountSlot> aliveCountSlots = new();
 
     [Header("Buff status (White Pawn)")]
     [SerializeField] private Image buffIconImage;
@@ -69,6 +82,7 @@ public class InGameUIManager : MonoBehaviour
     [SerializeField, Min(0f)] private float avatarResultHoldSeconds = 1f;
 
     private PlayerPiece playerPiece;
+    private SpawnManager spawnManager;
 
     private void Update()
     {
@@ -91,6 +105,11 @@ public class InGameUIManager : MonoBehaviour
             slot.countText.text = gameManager.GetDefeatedCount(slot.pieceType).ToString("00");
         }
 
+        if (spawnManager == null) spawnManager = FindFirstObjectByType<SpawnManager>();
+        if (spawnManager != null)
+            foreach (AliveCountSlot slot in aliveCountSlots)
+                RefreshAliveCountSlot(slot, spawnManager.GetAliveBlackCount(slot.pieceType));
+
         if (playerPiece == null) playerPiece = FindFirstObjectByType<PlayerPiece>();
         if (playerPiece == null) return;
 
@@ -106,6 +125,20 @@ public class InGameUIManager : MonoBehaviour
             transformDurationText.text = playerPiece.isTransformActive ? Mathf.Max(0f, playerPiece.transformTimer).ToString("F1") : "-";
 
         if (avatarImage != null) avatarImage.sprite = GetAvatarIcon(gameManager);
+    }
+
+    private static void RefreshAliveCountSlot(AliveCountSlot slot, int aliveCount)
+    {
+        if (slot.pipIcons == null) return;
+
+        int visiblePips = Mathf.Min(aliveCount, slot.pipIcons.Count);
+        for (int i = 0; i < slot.pipIcons.Count; i++)
+            if (slot.pipIcons[i] != null) slot.pipIcons[i].SetActive(i < visiblePips);
+
+        if (slot.overflowText == null) return;
+        int overflow = aliveCount - slot.pipIcons.Count;
+        slot.overflowText.gameObject.SetActive(overflow > 0);
+        if (overflow > 0) slot.overflowText.text = $"+{overflow}";
     }
 
     private Sprite GetTransformIcon(ChessPieceType pieceType)

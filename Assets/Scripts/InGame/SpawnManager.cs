@@ -6,6 +6,7 @@ public class SpawnManager : MonoBehaviour
 {
     private const int BoardSize = 8;
     private const int MaxBlackPieces = 16;
+    private const int MinSafeZoneTiles = 8;
 
     [Header("ScriptableObject data")]
     [SerializeField] private BlackPieceSO[] blackPieceData;
@@ -15,6 +16,9 @@ public class SpawnManager : MonoBehaviour
 
     public int BlackPieceCount => activePieces.Count(piece => piece is BlackEnemyPiece);
     public int QueenCount => activePieces.Count(piece => piece is BlackEnemyPiece && piece.PieceType == ChessPieceType.Queen);
+
+    public int GetAliveBlackCount(ChessPieceType pieceType) =>
+        activePieces.Count(piece => piece is BlackEnemyPiece && piece.PieceType == pieceType);
 
     public void SpawnInitialBlackPieces(Vector2Int playerPosition, int turn)
     {
@@ -26,11 +30,15 @@ public class SpawnManager : MonoBehaviour
     public int SpawnBlackPieces(int requestedCount, Vector2Int playerPosition, int turn, bool forceQueen)
     {
         int spawned = 0;
-        if (forceQueen && QueenCount < 3 && SpawnBlackOfType(ChessPieceType.Queen, playerPosition, turn) != null)
+        if (forceQueen && QueenCount < 3 && HasSafeZoneRoomToSpawn(playerPosition)
+            && SpawnBlackOfType(ChessPieceType.Queen, playerPosition, turn) != null)
             spawned++;
 
         while (spawned < requestedCount && BlackPieceCount < MaxBlackPieces)
         {
+            // Cancel the next spawn attempt if it would drop the board's free-tile safe zone below the minimum.
+            if (!HasSafeZoneRoomToSpawn(playerPosition)) break;
+
             BlackPieceSO data = SelectWeightedBlackData();
             if (data == null || SpawnPiece(data, GetRandomFreePosition(playerPosition), turn) == null) break;
             spawned++;
@@ -71,9 +79,10 @@ public class SpawnManager : MonoBehaviour
 
     public void RemoveExpiredWhitePieces(int currentTurn)
     {
+        // A white piece spawned on turn T stays through turn T+1 and disappears starting turn T+2.
         foreach (ChessPiece piece in activePieces.Where(piece => piece is WhiteBuffPiece || piece is WhiteTransformPiece).ToArray())
         {
-            if (piece.spawnedTurn < currentTurn)
+            if (piece.spawnedTurn < currentTurn - 1)
                 RemovePiece(piece);
         }
     }
@@ -86,7 +95,7 @@ public class SpawnManager : MonoBehaviour
             return null;
         }
 
-        // Keep the prefab's authored orientation (for example, a 2D chess sprite rotated 90¡Æ onto the board).
+        // Keep the prefab's authored orientation (for example, a 2D chess sprite rotated 90ï¿½ï¿½ onto the board).
         GameObject instance = Instantiate(data.prefab, GridToWorld(gridPosition), data.prefab.transform.rotation);
         ChessPiece piece = instance.GetComponent<ChessPiece>();
         if (piece == null)
@@ -157,6 +166,21 @@ public class SpawnManager : MonoBehaviour
     }
 
     private bool HasWhitePiece<T>() where T : ChessPiece => activePieces.Any(piece => piece is T);
+
+    private int CountFreeTiles(Vector2Int playerPosition)
+    {
+        int count = 0;
+        for (int z = 0; z < BoardSize; z++)
+            for (int x = 0; x < BoardSize; x++)
+            {
+                Vector2Int position = new(x, z);
+                if (position != playerPosition && !IsOccupied(position)) count++;
+            }
+        return count;
+    }
+
+    // One free tile is consumed by the piece being spawned, so at least MinSafeZoneTiles + 1 must be free beforehand.
+    private bool HasSafeZoneRoomToSpawn(Vector2Int playerPosition) => CountFreeTiles(playerPosition) - 1 >= MinSafeZoneTiles;
 
     private Vector2Int GetRandomFreePosition(Vector2Int playerPosition, ChessPiece ignoredPiece = null)
     {
