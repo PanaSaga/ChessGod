@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 public class ControlManager : MonoBehaviour
 {
     [Header("Movement timing")]
-    [SerializeField, Min(0.01f)] private float moveDuration = 0.1f;
+    [SerializeField, Min(0.01f)] private float moveDuration = 0.05f;
     [SerializeField, Min(0.01f)] private float moveCooldown = 0.15f;
 
     private int playerX = 4;
@@ -44,7 +44,7 @@ public class ControlManager : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance != null && GameManager.Instance.isSettling) return;
+        if (GameManager.Instance != null && GameManager.Instance.isMovementLocked) return;
 
         cooldownTimer -= Time.deltaTime;
         if (cooldownTimer <= 0f && heldDirection != Vector2Int.zero)

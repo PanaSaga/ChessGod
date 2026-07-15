@@ -61,6 +61,15 @@ public static class ChessAttackResolver
         return cells;
     }
 
+    // Chebyshev distance from the origin to the farthest attack cell - used to time the ring-by-ring reveal animation.
+    public static int GetMaxRing(ChessPieceSO data, Vector2Int origin)
+    {
+        int maxRing = 0;
+        foreach (Vector2Int cell in GetAttackCells(data, origin))
+            maxRing = Mathf.Max(maxRing, Mathf.Max(Mathf.Abs(cell.x - origin.x), Mathf.Abs(cell.y - origin.y)));
+        return maxRing;
+    }
+
     private static AttackPatternType ResolvePattern(ChessPieceSO data)
     {
         if (data.attackPattern != AttackPatternType.UsePieceType)

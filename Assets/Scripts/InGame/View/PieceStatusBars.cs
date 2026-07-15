@@ -221,6 +221,7 @@ public class PieceStatusBars : MonoBehaviour
         {
             root.transform.position = owner.position + worldOffset;
             root.transform.rotation = worldRotation;
+            root.transform.localScale = CounterScale(owner.lossyScale);
         }
 
         private void AddHeart()
@@ -271,6 +272,15 @@ public class PieceStatusBars : MonoBehaviour
             if (root == null) return;
             root.transform.position = owner.position + worldOffset;
             root.transform.rotation = worldRotation;
+            root.transform.localScale = CounterScale(owner.lossyScale);
         }
     }
+
+    // Both Status_* roots are parented under the piece so they get destroyed together,
+    // but that also means they inherit the piece's own scale (e.g. the jump squash) -
+    // cancel that out so the hearts/icon/bars never squash along with the piece.
+    private static Vector3 CounterScale(Vector3 parentLossyScale) => new(
+        parentLossyScale.x != 0f ? 1f / parentLossyScale.x : 1f,
+        parentLossyScale.y != 0f ? 1f / parentLossyScale.y : 1f,
+        parentLossyScale.z != 0f ? 1f / parentLossyScale.z : 1f);
 }
