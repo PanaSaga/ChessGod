@@ -5,7 +5,7 @@ using UnityEngine;
 // owning Esc detection itself -- CommonUIManager's escTogglePopup already opens/closes the
 // popup, this script only reacts to that.
 //
-// Placement: InGame.unity, alongside GameSessionObserver/AchievementTracker (scene-local,
+// Placement: InGame.unity, alongside GameSessionObserver/QuestTracker (scene-local,
 // same GameManager.Instance dependency).
 public class InGamePauseController : MonoBehaviour
 {

@@ -1,14 +1,14 @@
 using UnityEngine;
 
 // Subscribes to GameSessionObserver (never to GameManager directly) and turns its signals
-// into achievement judgments. Actual judgment conditions are left as TODO on purpose --
+// into quest judgments. Actual judgment conditions are left as TODO on purpose --
 // content isn't finalized yet, only the wiring/helper is. See CLAUDE.md's achievement
 // table for the reference conditions this will eventually implement.
 [RequireComponent(typeof(GameSessionObserver))]
-public class AchievementTracker : MonoBehaviour
+public class QuestTracker : MonoBehaviour
 {
     [Header("달성 시 Raise할 이벤트 채널 (없어도 동작함)")]
-    [SerializeField] private AchievementUnlockedEvent achievementUnlockedEvent;
+    [SerializeField] private QuestUnlockedEvent questUnlockedEvent;
 
     private GameSessionObserver observer;
 
@@ -70,15 +70,15 @@ public class AchievementTracker : MonoBehaviour
     }
 
     // 업적 진행도를 amount만큼 증가시키고, 목표치 도달 시 달성 처리 + 이벤트 Raise하는 공용 헬퍼.
-    private void IncrementAchievementProgress(string achievementId, int amount = 1)
+    private void IncrementQuestProgress(string questId, int amount = 1)
     {
         if (GlobalManager.DataProvider == null) return;
 
-        var achievements = GlobalManager.DataProvider.GetAllAchievements();
-        var target = achievements.Find(a => a.id == achievementId);
+        var quests = GlobalManager.DataProvider.GetAllQuests();
+        var target = quests.Find(q => q.id == questId);
         if (target == null)
         {
-            Debug.LogWarning($"[AchievementTracker] '{achievementId}' 업적을 찾을 수 없습니다.");
+            Debug.LogWarning($"[QuestTracker] '{questId}' 업적을 찾을 수 없습니다.");
             return;
         }
         if (target.isCompleted) return;
@@ -86,13 +86,13 @@ public class AchievementTracker : MonoBehaviour
         int newProgress = Mathf.Min(target.currentProgress + amount, target.targetProgress);
         bool nowCompleted = newProgress >= target.targetProgress;
 
-        GlobalManager.DataProvider.SaveAchievementProgress(achievementId, newProgress, nowCompleted);
+        GlobalManager.DataProvider.SaveQuestProgress(questId, newProgress, nowCompleted);
 
-        if (nowCompleted && achievementUnlockedEvent != null)
+        if (nowCompleted && questUnlockedEvent != null)
         {
             target.currentProgress = newProgress;
             target.isCompleted = true;
-            achievementUnlockedEvent.Raise(target);
+            questUnlockedEvent.Raise(target);
         }
     }
 }

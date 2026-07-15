@@ -24,11 +24,11 @@ public class DataManager : MonoBehaviour
     {
         public int saveVersion = CurrentSaveVersion;
         public List<string> unlockedGalleryIds = new List<string>();
-        public List<AchievementSaveEntry> achievementProgress = new List<AchievementSaveEntry>();
+        public List<QuestSaveEntry> questProgress = new List<QuestSaveEntry>();
     }
 
     [Serializable]
-    public class AchievementSaveEntry
+    public class QuestSaveEntry
     {
         public string id;
         public int progress;
@@ -70,23 +70,23 @@ public class DataManager : MonoBehaviour
         IsUpdating = false;
     }
 
-    // ---- Achievement progress ----
-    public void SaveAchievementProgress(string achievementId, int progress, bool isCompleted)
+    // ---- Quest progress ----
+    public void SaveQuestProgress(string questId, int progress, bool isCompleted)
     {
-        var entry = currentSave.achievementProgress.Find(e => e.id == achievementId);
+        var entry = currentSave.questProgress.Find(e => e.id == questId);
         if (entry == null)
         {
-            entry = new AchievementSaveEntry { id = achievementId };
-            currentSave.achievementProgress.Add(entry);
+            entry = new QuestSaveEntry { id = questId };
+            currentSave.questProgress.Add(entry);
         }
         entry.progress = progress;
         entry.isCompleted = isCompleted;
         Save();
     }
 
-    public List<AchievementSaveEntry> GetAchievementProgress()
+    public List<QuestSaveEntry> GetQuestProgress()
     {
-        return currentSave.achievementProgress;
+        return currentSave.questProgress;
     }
 
     // ---- Gallery unlocks ----

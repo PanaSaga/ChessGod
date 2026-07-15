@@ -6193,7 +6193,7 @@ GameObject:
   - component: {fileID: 717009861}
   - component: {fileID: 717009860}
   m_Layer: 0
-  m_Name: AchievementBridge
+  m_Name: QuestBridge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6211,7 +6211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ad81ef699bb7e64daaae0711db8d50d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AchievementTracker
-  achievementUnlockedEvent: {fileID: 0}
+  questUnlockedEvent: {fileID: 0}
 --- !u!114 &717009861
 MonoBehaviour:
   m_ObjectHideFlags: 0

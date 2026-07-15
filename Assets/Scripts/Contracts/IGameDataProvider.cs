@@ -5,13 +5,13 @@ public interface IGameDataProvider
 {
     // Reads
     List<GalleryItemData> GetUnlockedGalleryItems();
-    List<AchievementData> GetAllAchievements();
+    List<QuestData> GetAllQuests();
     SettingsData GetSettingsData();
     bool HasSeenPrologue();
     List<StoryLineData> GetStoryLines(string storyId);
 
     // Writes
-    void SaveAchievementProgress(string achievementId, int progress, bool isCompleted);
+    void SaveQuestProgress(string questId, int progress, bool isCompleted);
     void SaveSettingsData(SettingsData data);
     void SetPrologueSeen();
     void ResetProgress();
@@ -31,7 +31,7 @@ public class GalleryItemData
 }
 
 [System.Serializable]
-public class AchievementData
+public class QuestData
 {
     public string id;
     public string title;

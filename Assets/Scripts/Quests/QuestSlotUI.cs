@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// One row of the always-visible achievement panel. Icon is unique per achievement and
-// resolved by AchievementPopulator (id -> Sprite lookup), not carried in AchievementData.
-public class AchievementSlotUI : MonoBehaviour
+// One row of the always-visible quest panel. Icon is unique per quest and
+// resolved by QuestPopulator (id -> Sprite lookup), not carried in QuestData.
+public class QuestSlotUI : MonoBehaviour
 {
     [SerializeField] private Image iconImage;
     [SerializeField] private TMP_Text titleText;
@@ -17,7 +17,7 @@ public class AchievementSlotUI : MonoBehaviour
     [SerializeField] private Color completedColor = new Color(0.85f, 0.65f, 0.2f);
     [SerializeField] private Color incompleteColor = new Color(0.6f, 0.6f, 0.6f);
 
-    public void Setup(AchievementData data, Sprite icon)
+    public void Setup(QuestData data, Sprite icon)
     {
         if (iconImage != null) iconImage.sprite = icon;
         if (titleText != null) titleText.text = data.title;

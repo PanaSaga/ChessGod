@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 // Controls a single popup's show/hide state. Never fills in popup content itself --
-// content-filling scripts (AchievementPopulator, InGamePauseController, ...) subscribe to
+// content-filling scripts (QuestPopulator, InGamePauseController, ...) subscribe to
 // OnOpened/OnClosed instead, so this stays reusable across every popup in the project.
 public class PopupUI : MonoBehaviour
 {

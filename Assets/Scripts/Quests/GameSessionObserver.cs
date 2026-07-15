@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Reconstructs achievement-relevant signals (enemy defeated, multi-kill, stage cleared,
+// Reconstructs quest-relevant signals (enemy defeated, multi-kill, stage cleared,
 // score changed, game over) purely by diffing GameManager's public state every frame.
 // GameManager.cs is never modified -- this is the observer side of that boundary.
 public class GameSessionObserver : MonoBehaviour

@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-// Shows achievement-unlock toasts sequentially bottom-right. AchievementEventListener's
-// Response should be wired to Enqueue(AchievementData).
+// Shows quest-unlock toasts sequentially bottom-right. QuestEventListener's
+// Response should be wired to Enqueue(QuestData).
 //
 // Placement: under GlobalManager (DontDestroyOnLoad), not inside InGame.unity -- unlike
-// GameSessionObserver/AchievementTracker, this has no dependency on GameManager.Instance,
+// GameSessionObserver/QuestTracker, this has no dependency on GameManager.Instance,
 // and keeping it persistent means a toast raised right before a GameOver scene transition
-// isn't cut off mid-fade. AchievementUnlockedEvent is a ScriptableObject asset, so it can
+// isn't cut off mid-fade. QuestUnlockedEvent is a ScriptableObject asset, so it can
 // still be raised from InGame regardless of where the listener lives.
-public class AchievementToastManager : MonoBehaviour
+public class QuestToastManager : MonoBehaviour
 {
     [SerializeField] private GameObject toastPrefab;
     [SerializeField] private Transform toastRoot;
     [SerializeField] private float displayDuration = 3f;
     [SerializeField] private float fadeDuration = 0.3f;
 
-    private readonly Queue<AchievementData> queue = new Queue<AchievementData>();
+    private readonly Queue<QuestData> queue = new Queue<QuestData>();
     private bool isShowing;
 
-    public void Enqueue(AchievementData data)
+    public void Enqueue(QuestData data)
     {
         queue.Enqueue(data);
         if (!isShowing) StartCoroutine(ProcessQueue());
@@ -35,7 +35,7 @@ public class AchievementToastManager : MonoBehaviour
         isShowing = false;
     }
 
-    private IEnumerator ShowToast(AchievementData data)
+    private IEnumerator ShowToast(QuestData data)
     {
         GameObject toast = Instantiate(toastPrefab, toastRoot);
         CanvasGroup canvasGroup = toast.GetComponent<CanvasGroup>();
