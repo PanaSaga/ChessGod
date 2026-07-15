@@ -7800,6 +7800,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3657960516275687285, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: typeIconSize
+      value: 0.3
+      objectReference: {fileID: 0}
     - target: {fileID: 5212569226212328258, guid: 64561f82a01943745a183931ca848df0, type: 3}
       propertyPath: m_Name
       value: Ch_PW_King
@@ -7814,7 +7818,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.5
+      value: -3.42
       objectReference: {fileID: 0}
     - target: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
       propertyPath: m_LocalRotation.w
@@ -14405,6 +14409,32 @@ MonoBehaviour:
   upLine: {fileID: 21300000, guid: e1252612dca70b54fab8d8ee46d3d2c5, type: 3}
   trBar: {fileID: 21300000, guid: ec80a10a21ebdb24b8e4718b0e1c8042, type: 3}
   trLine: {fileID: 21300000, guid: 1e36323a98d212b4d8387a4e63c722aa, type: 3}
+  blackTypeIcons:
+  - pieceType: 1
+    icon: {fileID: 21300000, guid: 8a9abff78acca9248b50d529a7d3fe01, type: 3}
+  - pieceType: 2
+    icon: {fileID: 21300000, guid: c4bf723509cab7847bb7a6f11f6b6e5f, type: 3}
+  - pieceType: 3
+    icon: {fileID: 21300000, guid: 9765d0683b664e241bb76925937df3e6, type: 3}
+  - pieceType: 4
+    icon: {fileID: 21300000, guid: 8208364a2d7401040a56482b12bce387, type: 3}
+  - pieceType: 5
+    icon: {fileID: 21300000, guid: c2b02372b96b5054e88fcbda0cd843b7, type: 3}
+  - pieceType: 0
+    icon: {fileID: 21300000, guid: db0e0217657e270479299409b0b6c79c, type: 3}
+  whiteTypeIcons:
+  - pieceType: 1
+    icon: {fileID: 21300000, guid: 5ef602ee0f2759a4f996ee58775b5cb5, type: 3}
+  - pieceType: 2
+    icon: {fileID: 21300000, guid: 7aa2b96ebcdb2a04eb7965a4e18c6dc2, type: 3}
+  - pieceType: 3
+    icon: {fileID: 21300000, guid: 29b1efe88c2e7af4c91b54720d7c9f01, type: 3}
+  - pieceType: 4
+    icon: {fileID: 21300000, guid: 07910acd8a652584cac08240cc0b1802, type: 3}
+  - pieceType: 5
+    icon: {fileID: 21300000, guid: c8792e6871b4a2a408ee1f545cfde52c, type: 3}
+  - pieceType: 0
+    icon: {fileID: 21300000, guid: 3365d3300e30a7a40a798fab117df695, type: 3}
 --- !u!1 &1825798719
 GameObject:
   m_ObjectHideFlags: 0

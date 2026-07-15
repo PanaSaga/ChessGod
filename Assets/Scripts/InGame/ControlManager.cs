@@ -29,6 +29,7 @@ public class ControlManager : MonoBehaviour
         playerZ = startZ;
         playerPiece.gridPos = new Vector2Int(playerX, playerZ);
         SnapPlayerVisualPosition();
+        ChessBoardUtility.ApplySortingOrder(playerPiece.BodyRenderer, playerPiece.gridPos, isPlayer: true);
     }
 
     private void Update()
@@ -75,11 +76,12 @@ public class ControlManager : MonoBehaviour
         playerPiece.gridPos = new Vector2Int(playerX, playerZ);
 
         moveStartPosition = playerPiece.transform.localPosition;
-        moveTargetPosition = new Vector3(playerX - 3.5f, 0.101f, playerZ - 3.5f);
+        moveTargetPosition = ChessBoardUtility.GridToWorld(playerPiece.gridPos);
         moveElapsed = 0f;
         isMoving = true;
         cooldownTimer = moveCooldown;
 
+        ChessBoardUtility.ApplySortingOrder(playerPiece.BodyRenderer, playerPiece.gridPos, isPlayer: true);
         GameManager.Instance?.OnPlayerMoved(playerX, playerZ);
     }
 
@@ -93,7 +95,7 @@ public class ControlManager : MonoBehaviour
 
     private void SnapPlayerVisualPosition()
     {
-        playerPiece.transform.localPosition = new Vector3(playerX - 3.5f, 0.101f, playerZ - 3.5f);
+        playerPiece.transform.localPosition = ChessBoardUtility.GridToWorld(new Vector2Int(playerX, playerZ));
     }
 
     public Vector2Int GetPlayerGridPosition() => new Vector2Int(playerX, playerZ);

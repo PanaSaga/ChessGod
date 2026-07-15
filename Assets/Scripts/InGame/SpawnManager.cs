@@ -95,8 +95,8 @@ public class SpawnManager : MonoBehaviour
             return null;
         }
 
-        // Keep the prefab's authored orientation (for example, a 2D chess sprite rotated 90�� onto the board).
-        GameObject instance = Instantiate(data.prefab, GridToWorld(gridPosition), data.prefab.transform.rotation);
+        // Keep the prefab's authored orientation (for example, a 2D chess sprite rotated 90 degrees onto the board).
+        GameObject instance = Instantiate(data.prefab, ChessBoardUtility.GridToWorld(gridPosition), data.prefab.transform.rotation);
         ChessPiece piece = instance.GetComponent<ChessPiece>();
         if (piece == null)
         {
@@ -110,6 +110,8 @@ public class SpawnManager : MonoBehaviour
         piece.spawnedTurn = turn;
         if (piece is BlackEnemyPiece enemy && data is BlackPieceSO blackData)
             enemy.Initialize(blackData);
+
+        ChessBoardUtility.ApplySortingOrder(instance.GetComponentInChildren<SpriteRenderer>(), gridPosition, isPlayer: false);
 
         activePieces.Add(piece);
         return piece;
@@ -197,8 +199,7 @@ public class SpawnManager : MonoBehaviour
     private void SetPiecePosition(ChessPiece piece, Vector2Int position)
     {
         piece.gridPos = position;
-        piece.transform.position = GridToWorld(position);
+        piece.transform.position = ChessBoardUtility.GridToWorld(position);
+        ChessBoardUtility.ApplySortingOrder(piece.GetComponentInChildren<SpriteRenderer>(), position, isPlayer: false);
     }
-
-    private static Vector3 GridToWorld(Vector2Int position) => new(position.x - 3.5f, 0.101f, position.y - 3.5f);
 }

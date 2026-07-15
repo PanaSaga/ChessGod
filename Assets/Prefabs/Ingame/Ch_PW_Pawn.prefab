@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6054148842886853947}
   - component: {fileID: 2527817450375599463}
   - component: {fileID: 6781594421433877431}
+  - component: {fileID: -9016742176885204436}
   m_Layer: 0
   m_Name: Ch_PW_Pawn
   m_TagString: Untagged
@@ -109,3 +110,28 @@ MonoBehaviour:
   spawnedTurn: 0
   attackBuffPower: 2
   buffDuration: 20
+--- !u!114 &-9016742176885204436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5212569226212328258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebe0567aec7f123439d6e349a8a9572a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceStatusBars
+  heartRowOffset: {x: 0, y: 0.25, z: 0.35}
+  heartSize: 0.18
+  heartSpacing: 0.04
+  displayRotation: {x: 90, y: 0, z: 0}
+  typeIconSize: 0.3
+  typeIconSpacing: 0.06
+  upBarOffset: {x: 0, y: 0.25, z: -0.35}
+  trBarOffset: {x: 0, y: 0.25, z: -0.52}
+  barWidth: 1.5
+  barHeight: 0.12
+  maxPlayerHp: 3
+  effectDuration: 20
+  sortingOrder: 200

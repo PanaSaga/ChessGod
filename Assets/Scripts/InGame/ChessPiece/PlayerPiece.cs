@@ -23,6 +23,8 @@ public class PlayerPiece : ChessPiece
     private bool defaultFlipX;
     private bool defaultFlipY;
 
+    public SpriteRenderer BodyRenderer => playerRenderer;
+
     // This is the sole source for the player's attack calculation and board highlight.
     public ChessPieceSO CurrentAttackData => isTransformActive && transformedAttackData != null
         ? transformedAttackData
