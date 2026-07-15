@@ -14867,7 +14867,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   squashSideInfluence: 0.6
-  jumpStaggerWindow: 0.5
+  jumpStaggerWindow: 0.2
   revealRingInterval: 0.05
   revealLingerDuration: 1
 --- !u!1 &1901914850
