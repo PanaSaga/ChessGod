@@ -22,12 +22,6 @@ public class GameManager : MonoBehaviour
     public float maxTurnTime = 10f;
     public bool isSettling;
     public bool isGameOver;
-    // Set by TutorialManager while an explanation panel is on screen.
-    public bool isTutorialPaused;
-    // Set by TutorialManager for the whole tutorial session; suppresses automatic white-piece spawns.
-    public bool isTutorialActive;
-    // Set by TutorialManager while waiting for the player to reach a safe tile before the turn may end.
-    public bool isTutorialTurnEndBlocked;
     // Separate from isSettling: this unlocks partway through settlement (once black pieces start
     // their reposition jump) so the player can already move while that animation finishes.
     public bool isMovementLocked;
@@ -95,7 +89,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (isSettling || isGameOver || isTutorialPaused || isTutorialTurnEndBlocked) return;
+        if (isSettling || isGameOver) return;
         turnTimer -= Time.deltaTime;
         if (turnTimer <= 0f || (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame))
             StartSettlement();
@@ -362,17 +356,13 @@ public class GameManager : MonoBehaviour
         forceQueenNextSpawn = false;
 
         if (spawnManager.QueenCount >= 3) forceKnightTransformTurns = 5;
+        float buffChance = spawnManager.BlackPieceCount >= 6 ? 100f : Mathf.Min(30f, 10f + (currentStage - 1) * 5f);
+        spawnManager.TrySpawnBuffPiece(playerPosition, currentTurn, buffChance);
 
-        if (!isTutorialActive)
+        if (completedTurn % 5 == 0)
         {
-            float buffChance = spawnManager.BlackPieceCount >= 6 ? 100f : Mathf.Min(30f, 10f + (currentStage - 1) * 5f);
-            spawnManager.TrySpawnBuffPiece(playerPosition, currentTurn, buffChance);
-
-            if (completedTurn % 5 == 0)
-            {
-                bool forceKnight = forceKnightTransformTurns > 0;
-                spawnManager.TrySpawnTransformPiece(playerPosition, currentTurn, forceKnight);
-            }
+            bool forceKnight = forceKnightTransformTurns > 0;
+            spawnManager.TrySpawnTransformPiece(playerPosition, currentTurn, forceKnight);
         }
         if (forceKnightTransformTurns > 0) forceKnightTransformTurns--;
 

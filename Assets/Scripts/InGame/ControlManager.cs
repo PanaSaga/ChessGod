@@ -44,7 +44,7 @@ public class ControlManager : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance != null && (GameManager.Instance.isMovementLocked || GameManager.Instance.isTutorialPaused)) return;
+        if (GameManager.Instance != null && GameManager.Instance.isMovementLocked) return;
 
         cooldownTimer -= Time.deltaTime;
         if (cooldownTimer <= 0f && heldDirection != Vector2Int.zero)
