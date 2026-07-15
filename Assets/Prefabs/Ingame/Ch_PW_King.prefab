@@ -138,7 +138,7 @@ MonoBehaviour:
   upBarOffset: {x: 0, y: 0.103, z: -0.5}
   trBarOffset: {x: 0, y: 0.103, z: -0.6}
   barWidth: 1
-  barHeight: 0.1
+  barHeight: 0.08
   maxPlayerHp: 3
   effectDuration: 20
   sortingOrder: 200

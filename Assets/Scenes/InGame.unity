@@ -7801,6 +7801,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3657960516275687285, guid: 64561f82a01943745a183931ca848df0, type: 3}
+      propertyPath: barHeight
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 3657960516275687285, guid: 64561f82a01943745a183931ca848df0, type: 3}
       propertyPath: typeIconSize
       value: 0.3
       objectReference: {fileID: 0}
@@ -8579,7 +8583,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
+  m_Color: {r: 1, g: 0.9883084, b: 0.9669811, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
@@ -8642,13 +8646,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1004287522}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.953717, y: 0, z: 0, w: 0.30070582}
+  m_LocalRotation: {x: 0.88752335, y: -0.21149649, z: 0.096452445, w: 0.3978299}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 145, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 131.672, y: -0.25201416, z: 26.694}
 --- !u!114 &1004287525
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12117,7 +12121,7 @@ Transform:
   m_GameObject: {fileID: 1514934631}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1.02, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12135,9 +12139,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 679e5a71cce856147b081eed0c38e82c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoardViewManager
-  playerRangeMaterial: {fileID: 2100000, guid: 7733fa47d04b52a458b2d39f1be3ae24, type: 2}
-  enemyRangeMaterial: {fileID: 2100000, guid: a285ca4e48973574db5df9ad80e86d5b, type: 2}
-  overlapRangeMaterial: {fileID: 2100000, guid: c4c344ed9c52b684e9252451cb7d3d4c, type: 2}
+  playerRangeSprite: {fileID: 21300000, guid: d0c4a55e8eb0d864396d87aa111bfa93, type: 3}
+  enemyRangeSprite: {fileID: 21300000, guid: 8d4b979ad5a91c44285e88a899c00019, type: 3}
+  overlapRangeSprite: {fileID: 21300000, guid: 6bb2162a49b302741a518fbd2c5b0d05, type: 3}
   enemyPreviewInterval: 1
 --- !u!1 &1518534703
 GameObject:
@@ -14863,7 +14867,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   squashSideInfluence: 0.6
-  jumpStaggerWindow: 0.2
+  jumpStaggerWindow: 0.5
   revealRingInterval: 0.05
   revealLingerDuration: 1
 --- !u!1 &1901914850

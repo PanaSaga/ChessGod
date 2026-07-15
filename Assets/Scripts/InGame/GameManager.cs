@@ -50,8 +50,8 @@ public class GameManager : MonoBehaviour
     [SerializeField, Min(0f)] private float jumpStaggerWindow = 0.2f;
     [Tooltip("Seconds between each ring of a piece's attack-range reveal, once that piece lands. A queen's range takes longer to fully reveal than a pawn's.")]
     [SerializeField, Min(0.01f)] private float revealRingInterval = 0.05f;
-    [Tooltip("How long the fully-revealed attack-range tiles stay lit after damage resolves, before fading out. Does not delay the reposition jump, which starts immediately.")]
-    [SerializeField, Min(0f)] private float revealLingerDuration = 1f;
+    [Tooltip("How long each individual ring of tiles stays lit, counted from the moment that specific ring appeared. Every ring - from every piece - fades out on its own schedule.")]
+    [SerializeField, Min(0f)] private float revealLingerDuration = 0.2f;
 
     private SpawnManager spawnManager;
     private ControlManager controlManager;
@@ -140,8 +140,6 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator SettlementRoutine()
     {
-        boardViewManager?.ClearReveals();
-
         // 1. Each piece jumps for its attack; the instant it lands, its own range starts
         // spreading outward ring by ring (no instant full-range flash).
         yield return StartCoroutine(PlayAttackJumpPhase(GetSettlingPieces()));
@@ -156,10 +154,6 @@ public class GameManager : MonoBehaviour
 
         ResolvePlayerAttack();
         playerScore += TurnClearScore;
-
-        // The lit tiles linger for a moment on their own; this does not block the reposition
-        // jump below, so black pieces can already be jumping while the red tiles fade out.
-        StartCoroutine(ClearRevealsAfterDelay(revealLingerDuration));
 
         // 3. Surviving black pieces jump again to their new positions. The player can already move
         // once this phase starts, so their position may change before it's done.
@@ -206,13 +200,7 @@ public class GameManager : MonoBehaviour
         Vector3 basePosition = isPlayerPiece ? piece.transform.localPosition : piece.transform.position;
         yield return StartCoroutine(AnimateJump(piece.transform, basePosition, basePosition, delay, isPlayerPiece));
         if (piece == null) yield break;
-        boardViewManager?.RegisterReveal(piece.gridPos, attackData, isPlayerPiece, revealRingInterval);
-    }
-
-    private IEnumerator ClearRevealsAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        boardViewManager?.ClearReveals();
+        boardViewManager?.RegisterReveal(piece.gridPos, attackData, isPlayerPiece, revealRingInterval, revealLingerDuration);
     }
 
     private IEnumerator PlayRepositionPhase(Vector2Int playerPosition)

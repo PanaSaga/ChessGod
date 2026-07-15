@@ -5,19 +5,22 @@ using UnityEngine;
 // Shows gameplay attack data on the board; it does not change combat outcomes.
 public class BoardViewManager : MonoBehaviour
 {
-    private struct RevealSession
+    // One ring (one "step" of a piece's range reveal) with its own independent appear/expire timing.
+    private struct RingReveal
     {
-        public Vector2Int origin;
-        public ChessPieceSO attackData;
+        public HashSet<Vector2Int> cells;
         public bool isPlayer;
-        public float startTime;
-        public float ringInterval;
+        public float appearTime;
+        public float expireTime;
     }
 
-    [Header("Attack range materials")]
-    [SerializeField] private Material playerRangeMaterial;
-    [SerializeField] private Material enemyRangeMaterial;
-    [SerializeField] private Material overlapRangeMaterial;
+    [Header("Attack range overlay sprites")]
+    [Tooltip("Board_ChessW_ATK: player-only range.")]
+    [SerializeField] private Sprite playerRangeSprite;
+    [Tooltip("Board_ChessB_ATK: enemy-only range.")]
+    [SerializeField] private Sprite enemyRangeSprite;
+    [Tooltip("Board_ChessWB_ATK: player and enemy ranges overlapping.")]
+    [SerializeField] private Sprite overlapRangeSprite;
     [SerializeField, Min(0.1f)] private float enemyPreviewInterval = 1f;
 
     private BoardManager boardManager;
@@ -26,7 +29,7 @@ public class BoardViewManager : MonoBehaviour
     private float nextEnemyPreviewTime;
     private int enemyPreviewIndex;
 
-    private readonly List<RevealSession> activeReveals = new();
+    private readonly List<RingReveal> activeRings = new();
 
     private void Start()
     {
@@ -35,21 +38,42 @@ public class BoardViewManager : MonoBehaviour
         playerPiece = FindFirstObjectByType<PlayerPiece>();
     }
 
-    // Called by GameManager the instant a piece lands from its attack jump. That piece's own
-    // range then spreads outward ring by ring, independently of every other piece's reveal.
-    public void RegisterReveal(Vector2Int origin, ChessPieceSO attackData, bool isPlayer, float ringInterval)
+    // Called by GameManager the instant a piece lands from its attack jump. Splits that piece's
+    // range into per-ring entries: ring 0 appears immediately, ring 1 appears ringInterval later,
+    // ring 2 another ringInterval later, and so on. Each ring then lingers for ringLingerDuration
+    // seconds counted from when THAT ring appeared, and disappears on its own - independently of
+    // every other ring, whether from the same piece or a different one.
+    public void RegisterReveal(Vector2Int origin, ChessPieceSO attackData, bool isPlayer, float ringInterval, float ringLingerDuration)
     {
-        activeReveals.Add(new RevealSession
+        ringInterval = Mathf.Max(0.01f, ringInterval);
+        ringLingerDuration = Mathf.Max(0f, ringLingerDuration);
+        float now = Time.time;
+
+        Dictionary<int, HashSet<Vector2Int>> cellsByRing = new();
+        foreach (KeyValuePair<Vector2Int, int> cellRing in GetRings(attackData, origin))
         {
-            origin = origin,
-            attackData = attackData,
-            isPlayer = isPlayer,
-            startTime = Time.time,
-            ringInterval = Mathf.Max(0.01f, ringInterval)
-        });
+            if (!cellsByRing.TryGetValue(cellRing.Value, out HashSet<Vector2Int> cells))
+            {
+                cells = new HashSet<Vector2Int>();
+                cellsByRing[cellRing.Value] = cells;
+            }
+            cells.Add(cellRing.Key);
+        }
+
+        foreach (KeyValuePair<int, HashSet<Vector2Int>> ring in cellsByRing)
+        {
+            float appearTime = now + ring.Key * ringInterval;
+            activeRings.Add(new RingReveal
+            {
+                cells = ring.Value,
+                isPlayer = isPlayer,
+                appearTime = appearTime,
+                expireTime = appearTime + ringLingerDuration
+            });
+        }
     }
 
-    public void ClearReveals() => activeReveals.Clear();
+    public void ClearReveals() => activeRings.Clear();
 
     private void LateUpdate()
     {
@@ -57,46 +81,40 @@ public class BoardViewManager : MonoBehaviour
 
         foreach (BoardTileVisual tile in boardManager.GetAllTiles()) tile.ClearOverlay();
 
-        if (GameManager.Instance != null && GameManager.Instance.isSettling)
-        {
-            PaintActiveReveals();
-            return;
-        }
+        float now = Time.time;
+        activeRings.RemoveAll(ring => now >= ring.expireTime);
 
-        HashSet<Vector2Int> playerCells = ChessAttackResolver.GetAttackCells(playerPiece.CurrentAttackData, playerPiece.gridPos);
-        List<BlackEnemyPiece> enemies = spawnManager.activePieces.OfType<BlackEnemyPiece>().ToList();
-        HashSet<Vector2Int> enemyCells = GetVisibleEnemyCells(enemies);
-
-        foreach (Vector2Int cell in playerCells)
-            Paint(cell, enemyCells.Contains(cell) ? overlapRangeMaterial : playerRangeMaterial);
-
-        foreach (Vector2Int cell in enemyCells)
-            if (!playerCells.Contains(cell)) Paint(cell, enemyRangeMaterial);
-    }
-
-    // Each registered piece reveals its own attack cells outward from its own tile, at its own pace,
-    // independently of when any other piece landed or how far its own range reaches.
-    private void PaintActiveReveals()
-    {
         Dictionary<Vector2Int, bool> playerCovered = new();
         Dictionary<Vector2Int, bool> enemyCovered = new();
 
-        foreach (RevealSession session in activeReveals)
+        // Leftover attack-range rings keep fading out on their own schedule no matter what the
+        // game is doing right now - settling or not - so nothing ever gets cut off abruptly.
+        foreach (RingReveal ring in activeRings)
         {
-            float revealedRing = (Time.time - session.startTime) / session.ringInterval;
-            foreach (KeyValuePair<Vector2Int, int> cellRing in GetRings(session.attackData, session.origin))
+            if (now < ring.appearTime) continue;
+            foreach (Vector2Int cell in ring.cells)
             {
-                if (cellRing.Value > revealedRing) continue;
-                if (session.isPlayer) playerCovered[cellRing.Key] = true;
-                else enemyCovered[cellRing.Key] = true;
+                if (ring.isPlayer) playerCovered[cell] = true;
+                else enemyCovered[cell] = true;
             }
         }
 
+        if (GameManager.Instance == null || !GameManager.Instance.isSettling)
+        {
+            // Normal gameplay: the player's live range is always shown, plus one enemy's range cycling.
+            foreach (Vector2Int cell in ChessAttackResolver.GetAttackCells(playerPiece.CurrentAttackData, playerPiece.gridPos))
+                playerCovered[cell] = true;
+
+            List<BlackEnemyPiece> enemies = spawnManager.activePieces.OfType<BlackEnemyPiece>().ToList();
+            foreach (Vector2Int cell in GetVisibleEnemyCells(enemies))
+                enemyCovered[cell] = true;
+        }
+
         foreach (Vector2Int cell in playerCovered.Keys)
-            Paint(cell, enemyCovered.ContainsKey(cell) ? overlapRangeMaterial : playerRangeMaterial);
+            Paint(cell, enemyCovered.ContainsKey(cell) ? overlapRangeSprite : playerRangeSprite);
 
         foreach (Vector2Int cell in enemyCovered.Keys)
-            if (!playerCovered.ContainsKey(cell)) Paint(cell, enemyRangeMaterial);
+            if (!playerCovered.ContainsKey(cell)) Paint(cell, enemyRangeSprite);
     }
 
     // Chebyshev distance from the attacker's own tile: how many "rings" out a cell sits.
@@ -124,8 +142,8 @@ public class BoardViewManager : MonoBehaviour
         return result;
     }
 
-    private void Paint(Vector2Int position, Material material)
+    private void Paint(Vector2Int position, Sprite sprite)
     {
-        if (boardManager.TryGetTile(position, out BoardTileVisual tile)) tile.SetOverlay(material);
+        if (boardManager.TryGetTile(position, out BoardTileVisual tile)) tile.SetOverlay(sprite);
     }
 }
