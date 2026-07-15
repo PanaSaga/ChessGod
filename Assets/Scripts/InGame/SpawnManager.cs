@@ -184,7 +184,7 @@ public class SpawnManager : MonoBehaviour
     // One free tile is consumed by the piece being spawned, so at least MinSafeZoneTiles + 1 must be free beforehand.
     private bool HasSafeZoneRoomToSpawn(Vector2Int playerPosition) => CountFreeTiles(playerPosition) - 1 >= MinSafeZoneTiles;
 
-    private Vector2Int GetRandomFreePosition(Vector2Int playerPosition, ChessPiece ignoredPiece = null)
+    public Vector2Int GetRandomFreePosition(Vector2Int playerPosition, ChessPiece ignoredPiece = null)
     {
         List<Vector2Int> free = new();
         for (int z = 0; z < BoardSize; z++)
