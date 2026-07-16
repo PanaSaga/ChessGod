@@ -101,6 +101,16 @@ public class GameManager : MonoBehaviour
             StartSettlement();
     }
 
+    // Time.timeScale freezes every Time.deltaTime-based animation in the scene at once
+    // (movement lerp, settlement jump, attack-range reveal, etc). When a second pause
+    // source (e.g. an Esc menu) is added later, combine it here: Time.timeScale =
+    // (isTutorialPaused || isMenuPaused) ? 0f : 1f.
+    public void SetTutorialPaused(bool paused)
+    {
+        isTutorialPaused = paused;
+        Time.timeScale = paused ? 0f : 1f;
+    }
+
     public void OnPlayerMoved(int x, int z)
     {
         if (isSettling || isGameOver) return;

@@ -106,7 +106,7 @@ public class TutorialManager : MonoBehaviour
         if (dialogueText != null) dialogueText.text = step.dialogueText;
         MovePanelToTarget(step.targetTransform, step.positionOffset);
 
-        if (gameManager != null) gameManager.isTutorialPaused = true;
+        if (gameManager != null) gameManager.SetTutorialPaused(true);
 
         if (step.action is TutorialStepAction.ForceSpawnBuffPawn
             or TutorialStepAction.ForceSpawnTransformPiece
@@ -136,7 +136,7 @@ public class TutorialManager : MonoBehaviour
         TutorialStep step = steps[currentStepIndex];
 
         if (panelRoot != null) panelRoot.SetActive(false);
-        if (gameManager != null) gameManager.isTutorialPaused = false;
+        if (gameManager != null) gameManager.SetTutorialPaused(false);
 
         if (step.action == TutorialStepAction.WaitForSafeZone)
         {
@@ -236,7 +236,7 @@ public class TutorialManager : MonoBehaviour
         if (gameManager != null)
         {
             gameManager.isTutorialActive = false;
-            gameManager.isTutorialPaused = false;
+            gameManager.SetTutorialPaused(false);
             gameManager.isTutorialTurnEndBlocked = false;
         }
         SceneManager.LoadScene(nextSceneName);
