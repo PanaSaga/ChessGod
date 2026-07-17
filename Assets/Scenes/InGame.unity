@@ -324,7 +324,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &72963017
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -374,7 +374,7 @@ Canvas:
   m_GameObject: {fileID: 72963016}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 585905108}
   m_PlaneDistance: 8
   m_PixelPerfect: 0
@@ -3421,6 +3421,384 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 446480085}
   m_CullTransparentMesh: 1
+--- !u!1 &453135865
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 453135866}
+  - component: {fileID: 453135867}
+  m_Layer: 0
+  m_Name: TutorialManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &453135866
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 453135865}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1349783974}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &453135867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 453135865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 859a34574691b1f4c989242c2d9dd995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  steps:
+  - editorLabel: "Step1-1_\uC801\uC2A4\uD3F0"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC2A4\uD3F0\uB41C \uC801 \uD655\uC778"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces:
+    - pieceData: {fileID: 11400000, guid: 6ef38ecd86e38dc4b846cda47a3b8b9f, type: 2}
+      position: {x: 4, y: 3}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: f800828668952274cb72799e7ce7ffe5, type: 2}
+      position: {x: 2, y: 2}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: 93a1e1aa4acf27c4a958267119a20c5b, type: 2}
+      position: {x: 5, y: 2}
+      repositionExisting: 1
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-1_\uC870\uC791\uBC95"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC870\uC791\uC124"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-1_\uD134 \uC124\uBA85"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC2A4\uD14C\uC774\uC9C0\uC640 \uD134, \uD0C0\uC774\uBA38 \uC124\uBA85\uD558\uAE30"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-1_\uACF5\uACA9 \uBC94\uC704"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC790\uC2E0\uACFC \uD751\uC758 \uB9D0 \uACF5\uACA9 \uBC94\uC704
+      \uC124\uBA85"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-1_10\uCD08\uAC04 \uC774\uB3D9"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC790\uC720\uB86D\uAC8C \uC774\uB3D9"
+    targetTransform: {fileID: 50482770}
+    targetPieceData: {fileID: 0}
+    anchor: 3
+    anchorDistance: 0
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 1
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-1_\uC815\uC0B0"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC790\uC2E0\uC758 HP\uC640 \uD751\uC758 \uB9D0 HP \uC124\uBA85."
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-1_\uAC8C\uC784\uC624\uBC84 \uC870\uAC74"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uD50C\uB808\uC774\uC5B4\uC758 HP\uAC00 0\uC774 \uB418\uBA74 \uAC8C\uC784\uC624\uBC84."
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-1_\uD604\uD669 \uD655\uC778"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC0B4\uC544\uC788\uB294 \uD751\uC758 \uB9D0\uACFC \uCC98\uCE58\uD55C
+      \uD751\uC758 \uB9D0\uC744 \uD45C\uAE30\uD558\uB294 UI \uC124\uBA85."
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 2
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-2_\uD751 \uC2E0\uADDC\uC2A4\uD3F0"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uD134\uC774 \uB05D\uB098\uBA74 \uC0B4\uC544\uB0A8\uC740 \uD751\uC758
+      \uB9D0\uC774 \uC7AC\uBC30\uCE58\uB418\uACE0 \uC0C8 \uD751\uC758 \uB9D0\uC774
+      \uCD94\uAC00\uB85C \uC2A4\uD3F0\uB41C\uB2E4\uB294 \uAC83 \uC124\uBA85."
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces:
+    - pieceData: {fileID: 11400000, guid: 913fd32afaf07b64cb0794b15e3820ea, type: 2}
+      position: {x: 4, y: 4}
+      repositionExisting: 0
+    - pieceData: {fileID: 11400000, guid: f800828668952274cb72799e7ce7ffe5, type: 2}
+      position: {x: 0, y: 6}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: 6ef38ecd86e38dc4b846cda47a3b8b9f, type: 2}
+      position: {x: 6, y: 6}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: 93a1e1aa4acf27c4a958267119a20c5b, type: 2}
+      position: {x: 6, y: 1}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: a7a3210eaaf47b145a4ee4ad739968ff, type: 2}
+      position: {x: 3, y: 3}
+      repositionExisting: 0
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-2_\uBC84\uD504\uB9D0 \uC124\uBA85"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uBC84\uD504\uB9D0 \uC124\uBA85. 2\uD134 \uB0B4\uB85C \uC2B5\uB4DD\uD558\uC9C0
+      \uC54A\uC73C\uBA74 \uC0AC\uB77C\uC9C4\uB2E4 \uC124\uBA85."
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-2_\uD68D\uB4DD"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uBC84\uD504\uB9D0 \uC2B5\uB4DD\uD558\uAC8C \uD558\uAE30"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 3
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-2_\uC2A4\uD398\uC774\uC2A4\uBC14"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uD134\uB118\uAE30\uB294 \uAE30\uB2A5 \uC124\uBA85"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-2_\uACF5\uACA9"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\u3131\u3131"
+    targetTransform: {fileID: 0}
+    targetPieceData: {fileID: 11400000, guid: a7a3210eaaf47b145a4ee4ad739968ff, type: 2}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 5
+    safeZonePosition: {x: 3, y: 2}
+    teachesSpacebar: 1
+  - editorLabel: "Step1-2_\uC0C1\uD0DC\uC124\uBA85\uBCF4\uAC15"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uD504\uB85C\uBAA8\uC158 UI\uCC3D\uC744 \uC124\uBA85.\n\uC6D0\uB798\uB294
+      \uAC10\uC18C\uD574\uC57C \uD560 \uD504\uB85C\uBAA8\uC158 \uD0C0\uC774\uBA38
+      \uC124\uBA85."
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uC2E0\uADDC \uC2A4\uD3F0"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uADFC\uB370 \uC7E4\uB124\uAC00 \uC65C \uC5EC\uAE44\uC9C0?"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces:
+    - pieceData: {fileID: 11400000, guid: 7ed92825f07266146bb1f02a25855ea0, type: 2}
+      position: {x: 4, y: 2}
+      repositionExisting: 0
+    - pieceData: {fileID: 11400000, guid: 6ef38ecd86e38dc4b846cda47a3b8b9f, type: 2}
+      position: {x: 2, y: 3}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: 93a1e1aa4acf27c4a958267119a20c5b, type: 2}
+      position: {x: 0, y: 7}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: f800828668952274cb72799e7ce7ffe5, type: 2}
+      position: {x: 0, y: 0}
+      repositionExisting: 1
+    - pieceData: {fileID: 11400000, guid: 82ef26a0920a0e8459bace4a36ba80cb, type: 2}
+      position: {x: 6, y: 5}
+      repositionExisting: 0
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uD504\uB85C\uBAA8\uC158 \uC124\uBA85"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uBCC0\uC2E0\uB9D0 4\uC885 \uC124\uBA85"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uBCC0\uC2E0"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC9C1\uC811 \uC2B5\uB4DD"
+    targetTransform: {fileID: 0}
+    targetPieceData: {fileID: 11400000, guid: f800828668952274cb72799e7ce7ffe5, type: 2}
+    anchor: 5
+    anchorDistance: 2
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 4
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uBCC0\uC2E0\uC644\uB8CC"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uACF5\uACA9 \uBC94\uC704 \uBCC0\uACBD\uACFC \uBC84\uD504\uB791
+      \uC911\uCCA9 \uAC00\uB2A5\uD568\uC744 \uC124\uBA85"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uB2E4\uC911\uACF5\uACA9"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC774\uB3D9"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 5
+    safeZonePosition: {x: 4, y: 4}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uD68C\uBCF5"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "HP \uD68C\uBCF5 \uC124\uBA85"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uBCF4\uAC15\uC124\uBA85"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC2A4\uD14C\uC774\uC9C0 \uB808\uBCA8\uC774 \uC62C\uB77C\uAC08\uC218\uB85D
+      \uB354 \uB9CE\uC740 \uC801 \uB4F1\uC7A5 \uC124\uBA85"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uBE68\uB9AC \uB728\uC790"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uADF8 \uC804\uC5D0 esc \uC124\uBA85.\n\uD29C\uD1A0\uB9AC\uC5BC
+      \uC5B8\uC81C\uB4E0 \uB2E4\uC2DC \uAC00\uB2A5"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 0
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  - editorLabel: "Step1-3_\uC644\uB8CC"
+    speakerName: "\uD558\uC580 \uAD11\uB300"
+    dialogueText: "\uC778\uC0AC"
+    targetTransform: {fileID: 876211300}
+    targetPieceData: {fileID: 0}
+    anchor: 5
+    anchorDistance: 0.3
+    screenOffset: {x: 0, y: 0}
+    forcedPieces: []
+    action: 6
+    safeZonePosition: {x: 0, y: 0}
+    teachesSpacebar: 0
+  panelRoot: {fileID: 2104351432}
+  panelRectTransform: {fileID: 2104351433}
+  nameText: {fileID: 496377980}
+  dialogueText: {fileID: 1024617505}
+  nextButton: {fileID: 1594398413}
+  skipButton: {fileID: 850429621}
+  nextSceneName: MainLobby
+  safeZoneSprite: {fileID: 21300000, guid: 4fc823d6f07c5d6418d6bacce5b4587b, type: 3}
 --- !u!1 &454445396
 GameObject:
   m_ObjectHideFlags: 0
@@ -7985,7 +8363,7 @@ GameObject:
   - component: {fileID: 850429622}
   - component: {fileID: 850429621}
   m_Layer: 5
-  m_Name: Tuto_Skip
+  m_Name: Tuto_Btn_Skip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8708,6 +9086,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1629057422}
   m_SourcePrefab: {fileID: 100100000, guid: 64561f82a01943745a183931ca848df0, type: 3}
+--- !u!4 &876211300 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6054148842886853947, guid: 64561f82a01943745a183931ca848df0, type: 3}
+  m_PrefabInstance: {fileID: 876211299}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &888154465
 GameObject:
   m_ObjectHideFlags: 0
@@ -11289,6 +11672,7 @@ Transform:
   - {fileID: 1456459474}
   - {fileID: 648139268}
   - {fileID: 1823911265}
+  - {fileID: 453135866}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1359161486
@@ -14318,7 +14702,7 @@ GameObject:
   - component: {fileID: 1594398414}
   - component: {fileID: 1594398413}
   m_Layer: 5
-  m_Name: TutoUI_Btn
+  m_Name: Tuto_Btn_Next
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16504,6 +16888,9 @@ MonoBehaviour:
   isTutorialPaused: 0
   isTutorialActive: 0
   isTutorialTurnEndBlocked: 0
+  isTutorialTimerFrozen: 0
+  isTutorialBuffTimerFrozen: 0
+  isTutorialTransformTimerFrozen: 0
   isMovementLocked: 0
   jumpDuration: 0.5
   jumpHeightY: 0.25

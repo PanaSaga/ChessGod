@@ -51,7 +51,8 @@ public class PlayerPiece : ChessPiece
     {
         if (GameManager.Instance != null && GameManager.Instance.isPaused) return;
 
-        if (isBuffActive)
+        bool buffTimerFrozen = GameManager.Instance != null && GameManager.Instance.isTutorialBuffTimerFrozen;
+        if (isBuffActive && !buffTimerFrozen)
         {
             buffTimer -= Time.deltaTime;
             if (buffTimer <= 0f)
@@ -62,7 +63,8 @@ public class PlayerPiece : ChessPiece
             }
         }
 
-        if (isTransformActive)
+        bool transformTimerFrozen = GameManager.Instance != null && GameManager.Instance.isTutorialTransformTimerFrozen;
+        if (isTransformActive && !transformTimerFrozen)
         {
             transformTimer -= Time.deltaTime;
             if (transformTimer <= 0f)

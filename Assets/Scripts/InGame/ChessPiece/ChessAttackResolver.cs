@@ -58,6 +58,11 @@ public static class ChessAttackResolver
                 Slide(1, 1); Slide(1, -1); Slide(-1, 1); Slide(-1, -1);
                 break;
         }
+
+        // A piece's own tile always counts as within its own range - otherwise, if the player
+        // ever ends up standing exactly on an enemy's tile (nothing stops that), neither side
+        // would be able to hit the other.
+        cells.Add(origin);
         return cells;
     }
 

@@ -9,14 +9,14 @@ using UnityEngine.UI;
 public class InGameUIManager : MonoBehaviour
 {
     [Serializable]
-    private struct DefeatedCountSlot
+    public struct DefeatedCountSlot
     {
         public ChessPieceType pieceType;
         public TMP_Text countText;
     }
 
     [Serializable]
-    private struct AliveCountSlot
+    public struct AliveCountSlot
     {
         public ChessPieceType pieceType;
         [Tooltip("Up to 5 pip icon GameObjects, shown left to right in order.")]

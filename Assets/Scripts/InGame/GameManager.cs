@@ -30,6 +30,12 @@ public class GameManager : MonoBehaviour
     public bool isTutorialActive;
     // Set by TutorialManager while waiting for the player to reach a safe tile before the turn may end.
     public bool isTutorialTurnEndBlocked;
+    // Set by TutorialManager for whichever turns should feel untimed (the turn timer stops decreasing).
+    public bool isTutorialTimerFrozen;
+    // Set by TutorialManager for whichever turns the player's buff duration should not tick down.
+    public bool isTutorialBuffTimerFrozen;
+    // Set by TutorialManager for whichever turns the player's transform duration should not tick down.
+    public bool isTutorialTransformTimerFrozen;
     // Separate from isSettling: this unlocks partway through settlement (once black pieces start
     // their reposition jump) so the player can already move while that animation finishes.
     public bool isMovementLocked;
@@ -142,9 +148,14 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (isPaused || isSettling || isGameOver || isTutorialPaused || isTutorialTurnEndBlocked) return;
-        turnTimer -= Time.deltaTime;
-        if (turnTimer <= 0f || (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame))
+        if (isPaused || isSettling || isGameOver || isTutorialPaused) return;
+
+        // Frozen only stops the countdown itself, and turn-end-blocked only stops the space
+        // shortcut - neither should stop the other, or a "wait for the timer, no space" step
+        // (or an untimed "wait for space, no timer" step) would get stuck with nothing able to end it.
+        if (!isTutorialTimerFrozen) turnTimer -= Time.deltaTime;
+        bool spaceEndsTurn = !isTutorialTurnEndBlocked && Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+        if (turnTimer <= 0f || spaceEndsTurn)
             StartSettlement();
     }
 
@@ -215,8 +226,17 @@ public class GameManager : MonoBehaviour
         // once this phase starts, so their position may change before it's done.
         yield return StartCoroutine(PlayRepositionPhase(controlManager.GetPlayerGridPosition()));
 
-        // 4. Only now does the next turn actually begin - re-read the player's position in case they moved.
-        FinishTurn(controlManager.GetPlayerGridPosition());
+        // 4. Settlement itself is over - the turn's outcome is fully resolved and on screen.
+        // Normal play immediately advances to the next turn; the tutorial holds here so it can
+        // show "turn just ended" dialogue before currentTurn actually increments, then advances
+        // on its own via a call to AdvanceTurn() once the player is ready.
+        EndSettlement();
+        if (!isTutorialActive) AdvanceTurn();
+    }
+
+    private void EndSettlement()
+    {
+        isSettling = false;
     }
 
     private List<ChessPiece> GetSettlingPieces()
@@ -263,13 +283,15 @@ public class GameManager : MonoBehaviour
     private IEnumerator PlayRepositionPhase(Vector2Int playerPosition)
     {
         // From here on the player can walk around again; only the settlement/turn-timer stays locked
-        // (via isSettling) until FinishTurn runs, so a new settlement can't start mid-reposition.
+        // (via isSettling) until EndSettlement runs, so a new settlement can't start mid-reposition.
         isMovementLocked = false;
 
         List<BlackEnemyPiece> survivors = spawnManager.activePieces.OfType<BlackEnemyPiece>().ToList();
         Dictionary<BlackEnemyPiece, Vector3> oldPositions = survivors.ToDictionary(piece => piece, piece => piece.transform.position);
 
-        spawnManager.RepositionBlackPieces(playerPosition);
+        // The tutorial places every black piece by hand for determinism (safe zones, forced targets),
+        // so the normal random reposition is skipped for the whole tutorial session.
+        if (!isTutorialActive) spawnManager.RepositionBlackPieces(playerPosition);
 
         List<BlackEnemyPiece> ordered = survivors
             .Where(piece => piece != null)
@@ -589,8 +611,11 @@ public class GameManager : MonoBehaviour
         onComplete?.Invoke();
     }
 
-    private void FinishTurn(Vector2Int playerPosition)
+    // Actually advances the turn count and re-spawns/repositions for the new turn. Normal play
+    // calls this immediately after settlement ends; the tutorial calls it itself (see EndSettlement).
+    public void AdvanceTurn()
     {
+        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
         int completedTurn = currentTurn;
         currentTurn++;
         // Stage 1 contains turns 1-10; stage 2 starts after turn 10 is cleared.
@@ -606,7 +631,8 @@ public class GameManager : MonoBehaviour
         bool queenExists = spawnManager.QueenCount > 0;
         turnsWithoutQueen = queenExists ? 0 : turnsWithoutQueen + 1;
         bool mustSpawnQueen = forceQueenNextSpawn || turnsWithoutQueen >= 3;
-        spawnManager.SpawnBlackPieces(currentStage, playerPosition, currentTurn, mustSpawnQueen);
+        // Same reasoning as the reposition skip above: the tutorial spawns every black piece itself.
+        if (!isTutorialActive) spawnManager.SpawnBlackPieces(currentStage, playerPosition, currentTurn, mustSpawnQueen);
         forceQueenNextSpawn = false;
 
         if (spawnManager.QueenCount >= 3) forceKnightTransformTurns = 5;
@@ -624,7 +650,6 @@ public class GameManager : MonoBehaviour
         }
         if (forceKnightTransformTurns > 0) forceKnightTransformTurns--;
 
-        isSettling = false;
         turnTimer = maxTurnTime;
     }
 
@@ -647,4 +672,24 @@ public class GameManager : MonoBehaviour
         gameOverPopup?.Show(playerScore, currentStage, currentTurn);
     }
 
+    // Called by TutorialManager when the tutorial's farewell step ends - clears the board with the
+    // same death-fling animation used during normal play, for a clean finale before returning to the lobby.
+    public IEnumerator PlayFinaleDeathSequence()
+    {
+        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
+        List<BlackEnemyPiece> survivors = spawnManager.activePieces.OfType<BlackEnemyPiece>().ToList();
+
+        foreach (BlackEnemyPiece enemy in survivors)
+        {
+            spawnManager.activePieces.Remove(enemy);
+            BlackEnemyPiece capturedEnemy = enemy;
+            StartCoroutine(AnimateDeath(enemy.transform, enemy.gridPos, playerPosition, useLocalPosition: false, () =>
+            {
+                if (capturedEnemy != null) Destroy(capturedEnemy.gameObject);
+            }));
+        }
+
+        if (survivors.Count > 0)
+            yield return new WaitForSeconds(deathFallDuration);
+    }
 }

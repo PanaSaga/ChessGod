@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -8,24 +9,79 @@ using UnityEngine.UI;
 
 public class TutorialManager : MonoBehaviour
 {
+    // What happens when the player presses Next/space on a step, instead of immediately
+    // revealing the next step's panel.
     public enum TutorialStepAction
     {
         None,
-        ForceSpawnBuffPawn,
-        ForceSpawnTransformPiece,
-        ForceSpawnBlackKing,
-        WaitForSafeZone,
+        // Settlement is fully done (currentTurn has NOT incremented yet), but nothing shows until
+        // this happens - attach to the step right before the "turn just ended" dialogue.
+        WaitForTurnEnd,
+        // Attach to the LAST "turn just ended" dialogue step: pressing Next here is what actually
+        // advances currentTurn (spawns/timer reset/etc.) before moving on to the next step.
+        AdvanceTurn,
+        WaitForBuffPickup,
+        WaitForTransformPickup,
+        WaitForSafeZoneArrival,
         EndTutorial
     }
 
-    [System.Serializable]
-    private class TutorialStep
+    // Which side/corner of the target the textbox sits on. X/Z follow world axes (X = left/right,
+    // Z = the axis that reads as up/down on this top-down camera - same convention used everywhere else).
+    public enum TutorialAnchor
     {
+        Top,
+        Bottom,
+        Left,
+        Right,
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight
+    }
+
+    // One piece to place the instant this step is shown - either a brand new spawn, or moving
+    // an already-active piece of the same data to a new tile. Lets a single step place several
+    // pieces at once (e.g. repositioning survivors and spawning a new one together).
+    [System.Serializable]
+    public class ForcedPiece
+    {
+        public ChessPieceSO pieceData;
+        public Vector2Int position;
+        [Tooltip("Checked: move an already-active piece using this same data asset. Unchecked: spawn a new one.")]
+        public bool repositionExisting;
+    }
+
+    [System.Serializable]
+    public class TutorialStep
+    {
+        [Tooltip("Your own label for finding this step in the list - never shown in-game.")]
+        public string editorLabel;
+
         public string speakerName;
         [TextArea] public string dialogueText;
+        [Tooltip("For a fixed scene object: the player, or a UI element like the timer text.")]
         public Transform targetTransform;
-        public Vector2 positionOffset;
+        [Tooltip("For a black/white piece instead: pieces only exist at runtime, so this looks up whichever active piece is currently using this data when the step shows. Leave empty and use Target Transform above for anything else. If both are set, this takes priority.")]
+        public ChessPieceSO targetPieceData;
+
+        [Header("World-space anchor (used when Target Transform is a piece/board object)")]
+        public TutorialAnchor anchor = TutorialAnchor.BottomLeft;
+        [Tooltip("Board-unit distance from the target along the anchor direction. One board tile = 1.")]
+        public float anchorDistance = 0.3f;
+
+        [Header("Screen-space offset (used when Target Transform is a UI element instead)")]
+        public Vector2 screenOffset;
+
+        [Header("Pieces to force into place the instant this step shows")]
+        public List<ForcedPiece> forcedPieces = new();
+
+        [Header("What happens on Next/space")]
         public TutorialStepAction action;
+        [Tooltip("Only used when Action is Wait For Safe Zone Arrival - the exact tile the player must reach.")]
+        public Vector2Int safeZonePosition;
+        [Tooltip("Check this on the step that teaches the space bar. Until this step has shown, space can never end a turn - so the player can't stumble into ending a turn before being told how.")]
+        public bool teachesSpacebar;
     }
 
     [Header("Tutorial steps")]
@@ -39,25 +95,26 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private Button nextButton;
     [SerializeField] private Button skipButton;
 
-    [Header("Forced spawn data")]
-    [SerializeField] private WhitePieceSO buffPawnData;
-    [SerializeField] private WhitePieceSO transformPieceData;
-    [SerializeField] private BlackPieceSO blackKingData;
-
     [Header("Scene transition")]
-    [SerializeField] private string nextSceneName = "MainScene";
+    [SerializeField] private string nextSceneName = "MainLobby";
+
+    [Header("Safe zone overlay")]
+    [Tooltip("Board_ChessW_Safe: shown on the exact tile the player needs to reach for a safe-zone checkpoint.")]
+    [SerializeField] private Sprite safeZoneSprite;
 
     private GameManager gameManager;
     private ControlManager controlManager;
     private SpawnManager spawnManager;
+    private PlayerPiece playerPiece;
+    private BoardManager boardManager;
     private int currentStepIndex = -1;
 
-    // Safe-zone checkpoint state (Turn 2 space-bar practice step).
-    private bool isWaitingForSafeZone;
+    // Wait-condition polling state.
+    private TutorialStepAction pendingWait = TutorialStepAction.None;
     private bool isWaitingForTurnSettlement;
     private bool hasSeenSettlementStart;
-    private bool isTimerFrozen;
-    private float frozenTurnTimer;
+    private Vector2Int currentSafeZoneTarget;
+    private bool hasTaughtSpacebar;
 
     private void Start()
     {
@@ -72,6 +129,8 @@ public class TutorialManager : MonoBehaviour
         gameManager = FindFirstObjectByType<GameManager>();
         controlManager = FindFirstObjectByType<ControlManager>();
         spawnManager = FindFirstObjectByType<SpawnManager>();
+        playerPiece = FindFirstObjectByType<PlayerPiece>();
+        boardManager = FindFirstObjectByType<BoardManager>();
 
         if (nextButton != null) nextButton.onClick.AddListener(OnNextPressed);
         if (skipButton != null) skipButton.onClick.AddListener(OnSkipPressed);
@@ -83,16 +142,39 @@ public class TutorialManager : MonoBehaviour
 
     private void Update()
     {
-        // Keep the turn timer frozen for the whole safe-zone checkpoint, from the moment it
-        // starts until the player's real space press actually begins settlement.
-        if (isTimerFrozen && gameManager != null && !gameManager.isSettling)
-            gameManager.turnTimer = frozenTurnTimer;
+        // Per-turn rule overrides: turns 2-3 run untimed, turn 2 keeps the buff duration from
+        // ticking (the player is meant to still have it active when reaching the knight), and
+        // turn 3 keeps the transform duration from ticking (same reasoning for the transform).
+        if (gameManager != null)
+        {
+            gameManager.isTutorialTimerFrozen = gameManager.currentTurn >= 2;
+            gameManager.isTutorialBuffTimerFrozen = gameManager.currentTurn == 2;
+            gameManager.isTutorialTransformTimerFrozen = gameManager.currentTurn == 3;
 
-        if (isWaitingForSafeZone) { PollSafeZone(); return; }
+            // Space can't end a turn at all until the player has been taught it, or while a
+            // pickup is still pending (picking up the buff/transform is a prerequisite for the
+            // rest of the turn's script, so the turn must not end before it happens - even in a
+            // later turn where space was already taught). A safe-zone checkpoint manages the
+            // flag itself every frame instead (see PollSafeZone), since it depends on position.
+            if (!hasTaughtSpacebar
+                || pendingWait == TutorialStepAction.WaitForBuffPickup
+                || pendingWait == TutorialStepAction.WaitForTransformPickup)
+            {
+                gameManager.isTutorialTurnEndBlocked = true;
+            }
+            else if (pendingWait != TutorialStepAction.WaitForSafeZoneArrival)
+            {
+                gameManager.isTutorialTurnEndBlocked = false;
+            }
+        }
+
+        if (pendingWait == TutorialStepAction.WaitForSafeZoneArrival) { PollSafeZone(); return; }
         if (isWaitingForTurnSettlement) { PollTurnSettlement(); return; }
+        if (pendingWait == TutorialStepAction.WaitForBuffPickup) { PollBuffPickup(); return; }
+        if (pendingWait == TutorialStepAction.WaitForTransformPickup) { PollTransformPickup(); return; }
 
-        // Space only advances a dialogue step. While isTutorialPaused is false (the safe-zone
-        // checkpoint), the real space bar goes to GameManager's own turn-end handling instead.
+        // Space only advances a dialogue step. While isTutorialPaused is false (a wait-condition
+        // is active instead), the real space bar goes to GameManager's own turn-end handling.
         if (gameManager != null && gameManager.isTutorialPaused
             && Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
             OnNextPressed();
@@ -102,7 +184,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (index < 0 || index >= steps.Count)
         {
-            EndTutorial();
+            StartCoroutine(EndTutorial());
             return;
         }
 
@@ -112,44 +194,103 @@ public class TutorialManager : MonoBehaviour
         if (panelRoot != null) panelRoot.SetActive(true);
         if (nameText != null) nameText.text = step.speakerName;
         if (dialogueText != null) dialogueText.text = step.dialogueText;
-        MovePanelToTarget(step.targetTransform, step.positionOffset);
+        MovePanelToTarget(step);
 
-        if (gameManager != null) gameManager.isTutorialPaused = true;
+        if (step.teachesSpacebar) hasTaughtSpacebar = true;
 
-        if (step.action is TutorialStepAction.ForceSpawnBuffPawn
-            or TutorialStepAction.ForceSpawnTransformPiece
-            or TutorialStepAction.ForceSpawnBlackKing
-            or TutorialStepAction.EndTutorial)
-            ExecuteStepAction(step.action);
+        foreach (ForcedPiece forced in step.forcedPieces)
+            ApplyForcedPiece(forced);
+
+        if (step.action == TutorialStepAction.WaitForTurnEnd)
+        {
+            // Stays on screen while the player can still move/act, until the turn ends on its own -
+            // no Next press needed, so movement must not be paused for this one.
+            if (gameManager != null) gameManager.isTutorialPaused = false;
+            BeginWaitForTurnEnd();
+        }
+        else
+        {
+            if (gameManager != null) gameManager.isTutorialPaused = true;
+        }
     }
 
     // The panel's Canvas is Screen Space - Overlay, so a RectTransform's .position is already
     // a screen-pixel coordinate; a world-space piece needs one extra conversion to reach that
-    // same space.
-    private void MovePanelToTarget(Transform target, Vector2 offset)
+    // same space. UI targets use a flat screen offset; world targets are anchored in board units
+    // (X/Z) before converting to screen space, so the offset stays consistent with the game's own
+    // grid regardless of camera zoom.
+    private void MovePanelToTarget(TutorialStep step)
     {
+        Transform target = ResolveTarget(step);
         if (panelRectTransform == null || target == null) return;
 
         RectTransform targetRect = target as RectTransform;
-        Vector3 screenPoint = targetRect != null
-            ? targetRect.position
-            : Camera.main.WorldToScreenPoint(target.position);
+        if (targetRect != null)
+        {
+            panelRectTransform.position = targetRect.position + (Vector3)step.screenOffset;
+            return;
+        }
 
-        panelRectTransform.position = screenPoint + (Vector3)offset;
+        Vector3 anchoredWorldPosition = target.position + GetAnchorWorldOffset(step.anchor) * step.anchorDistance;
+        panelRectTransform.position = Camera.main.WorldToScreenPoint(anchoredWorldPosition);
     }
+
+    // Pieces are spawned at runtime, so a specific piece can't be dragged into Target Transform
+    // ahead of time - Target Piece Data finds whichever active piece is using that data instead.
+    private Transform ResolveTarget(TutorialStep step)
+    {
+        if (step.targetPieceData != null && spawnManager != null)
+        {
+            ChessPiece piece = spawnManager.activePieces.FirstOrDefault(p => p.pieceData == step.targetPieceData);
+            if (piece != null) return piece.transform;
+        }
+        return step.targetTransform;
+    }
+
+    private static Vector3 GetAnchorWorldOffset(TutorialAnchor anchor) => anchor switch
+    {
+        TutorialAnchor.Top => new Vector3(0f, 0f, 1f),
+        TutorialAnchor.Bottom => new Vector3(0f, 0f, -1f),
+        TutorialAnchor.Left => new Vector3(-1f, 0f, 0f),
+        TutorialAnchor.Right => new Vector3(1f, 0f, 0f),
+        TutorialAnchor.TopLeft => new Vector3(-1f, 0f, 1f),
+        TutorialAnchor.TopRight => new Vector3(1f, 0f, 1f),
+        TutorialAnchor.BottomLeft => new Vector3(-1f, 0f, -1f),
+        TutorialAnchor.BottomRight => new Vector3(1f, 0f, -1f),
+        _ => Vector3.zero
+    };
 
     private void OnNextPressed()
     {
         if (currentStepIndex < 0 || currentStepIndex >= steps.Count) return;
+        // Already auto-advancing on some condition (including the current step's own
+        // WaitForTurnEnd, which never leaves this state via Next) - ignore stray clicks/space.
+        if (isWaitingForTurnSettlement || pendingWait != TutorialStepAction.None) return;
+
         TutorialStep step = steps[currentStepIndex];
 
         if (panelRoot != null) panelRoot.SetActive(false);
         if (gameManager != null) gameManager.isTutorialPaused = false;
 
-        if (step.action == TutorialStepAction.WaitForSafeZone)
+        switch (step.action)
         {
-            BeginSafeZoneCheckpoint();
-            return;
+            case TutorialStepAction.WaitForSafeZoneArrival:
+                BeginSafeZoneCheckpoint(step.safeZonePosition);
+                return;
+            case TutorialStepAction.AdvanceTurn:
+                gameManager?.AdvanceTurn();
+                break;
+            case TutorialStepAction.WaitForBuffPickup:
+            case TutorialStepAction.WaitForTransformPickup:
+                pendingWait = step.action;
+                // Set immediately (not left for next frame's Update) - otherwise the same
+                // key press that just dismissed this panel could reach GameManager's own
+                // space-ends-turn check first and start a settlement we don't want yet.
+                if (gameManager != null) gameManager.isTutorialTurnEndBlocked = true;
+                return;
+            case TutorialStepAction.EndTutorial:
+                StartCoroutine(EndTutorial());
+                return;
         }
 
         ShowStep(currentStepIndex + 1);
@@ -157,68 +298,85 @@ public class TutorialManager : MonoBehaviour
 
     private void OnSkipPressed()
     {
-        EndTutorial();
+        StartCoroutine(EndTutorial());
     }
 
-    private void ExecuteStepAction(TutorialStepAction action)
+    // Reposition Existing = true means "move this piece IF it's still alive" - if the player
+    // already killed it, this entry does nothing at all. It never spawns a replacement, so a
+    // captured piece never comes back from a reposition command.
+    private void ApplyForcedPiece(ForcedPiece forced)
     {
-        switch (action)
+        if (spawnManager == null || gameManager == null || forced.pieceData == null) return;
+
+        if (forced.repositionExisting)
         {
-            case TutorialStepAction.ForceSpawnBuffPawn:
-                ForceSpawnPiece(buffPawnData);
-                break;
-            case TutorialStepAction.ForceSpawnTransformPiece:
-                ForceSpawnPiece(transformPieceData);
-                break;
-            case TutorialStepAction.ForceSpawnBlackKing:
-                ForceSpawnPiece(blackKingData);
-                break;
-            case TutorialStepAction.EndTutorial:
-                EndTutorial();
-                break;
+            ChessPiece existing = spawnManager.activePieces.FirstOrDefault(piece => piece.pieceData == forced.pieceData);
+            if (existing != null)
+            {
+                existing.gridPos = forced.position;
+                existing.transform.position = ChessBoardUtility.GridToWorld(forced.position);
+                ChessBoardUtility.ApplySortingOrder(existing.GetComponentInChildren<SpriteRenderer>(), forced.position, isPlayer: false);
+            }
+            return;
         }
+
+        spawnManager.SpawnPiece(forced.pieceData, forced.position, gameManager.currentTurn);
     }
 
-    private void ForceSpawnPiece(ChessPieceSO data)
+    private void BeginWaitForTurnEnd()
     {
-        if (spawnManager == null || gameManager == null || controlManager == null || data == null) return;
-
-        Vector2Int position = spawnManager.GetRandomFreePosition(controlManager.GetPlayerGridPosition());
-        if (position.x < 0) return;
-
-        spawnManager.SpawnPiece(data, position, gameManager.currentTurn);
-    }
-
-    private void BeginSafeZoneCheckpoint()
-    {
-        if (gameManager == null) return;
-
-        frozenTurnTimer = gameManager.turnTimer;
-        isTimerFrozen = true;
-        gameManager.isTutorialTurnEndBlocked = true;
-        isWaitingForSafeZone = true;
-    }
-
-    private void PollSafeZone()
-    {
-        if (gameManager == null || controlManager == null || spawnManager == null) return;
-
-        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
-        if (IsPositionUnderAttack(playerPosition)) return;
-
-        // The player just reached a safe tile: let a real space press end the turn now,
-        // but keep the timer frozen until that press actually starts settlement.
-        gameManager.isTutorialTurnEndBlocked = false;
-        isWaitingForSafeZone = false;
         isWaitingForTurnSettlement = true;
         hasSeenSettlementStart = false;
     }
 
-    private bool IsPositionUnderAttack(Vector2Int position)
+    private void BeginSafeZoneCheckpoint(Vector2Int targetPosition)
     {
-        return spawnManager.activePieces
-            .OfType<BlackEnemyPiece>()
-            .Any(enemy => ChessAttackResolver.GetAttackCells(enemy.pieceData, enemy.gridPos).Contains(position));
+        if (gameManager == null) return;
+
+        currentSafeZoneTarget = targetPosition;
+        gameManager.isTutorialTurnEndBlocked = true;
+        pendingWait = TutorialStepAction.WaitForSafeZoneArrival;
+
+        if (boardManager != null && boardManager.TryGetTile(targetPosition, out BoardTileVisual tile))
+            tile.SetSafeZoneOverlay(safeZoneSprite);
+    }
+
+    // Re-checked every single frame (not just once on arrival) - space only works while the
+    // player is standing exactly on the tile right now, and re-blocks the instant they step off.
+    private void PollSafeZone()
+    {
+        if (gameManager == null || controlManager == null) return;
+
+        bool onSafeZone = controlManager.GetPlayerGridPosition() == currentSafeZoneTarget;
+        gameManager.isTutorialTurnEndBlocked = !onSafeZone;
+
+        if (!gameManager.isSettling) return;
+
+        // Space was pressed while standing on the tile - the turn is genuinely ending now.
+        pendingWait = TutorialStepAction.None;
+        isWaitingForTurnSettlement = true;
+        hasSeenSettlementStart = true;
+        ClearSafeZoneOverlay();
+    }
+
+    private void ClearSafeZoneOverlay()
+    {
+        if (boardManager != null && boardManager.TryGetTile(currentSafeZoneTarget, out BoardTileVisual tile))
+            tile.ClearSafeZoneOverlay();
+    }
+
+    private void PollBuffPickup()
+    {
+        if (playerPiece == null || !playerPiece.isBuffActive) return;
+        pendingWait = TutorialStepAction.None;
+        ShowStep(currentStepIndex + 1);
+    }
+
+    private void PollTransformPickup()
+    {
+        if (playerPiece == null || !playerPiece.isTransformActive) return;
+        pendingWait = TutorialStepAction.None;
+        ShowStep(currentStepIndex + 1);
     }
 
     private void PollTurnSettlement()
@@ -227,7 +385,11 @@ public class TutorialManager : MonoBehaviour
 
         if (!hasSeenSettlementStart)
         {
-            if (gameManager.isSettling) hasSeenSettlementStart = true;
+            if (gameManager.isSettling)
+            {
+                hasSeenSettlementStart = true;
+                ClearSafeZoneOverlay();
+            }
             return;
         }
 
@@ -235,18 +397,29 @@ public class TutorialManager : MonoBehaviour
 
         // Settlement finished: the turn actually ended, so the checkpoint is complete.
         isWaitingForTurnSettlement = false;
-        isTimerFrozen = false;
         ShowStep(currentStepIndex + 1);
     }
 
-    private void EndTutorial()
+    // Clears any remaining black pieces with the normal death-fling animation, waits for it to
+    // finish, then leaves for the lobby - so the tutorial closes on the same "victory" beat a
+    // real turn-clear would.
+    private IEnumerator EndTutorial()
     {
+        if (pendingWait == TutorialStepAction.WaitForSafeZoneArrival) ClearSafeZoneOverlay();
+
         if (gameManager != null)
         {
-            gameManager.isTutorialActive = false;
             gameManager.isTutorialPaused = false;
             gameManager.isTutorialTurnEndBlocked = false;
+            gameManager.isTutorialTimerFrozen = false;
+            gameManager.isTutorialBuffTimerFrozen = false;
+            gameManager.isTutorialTransformTimerFrozen = false;
+
+            yield return StartCoroutine(gameManager.PlayFinaleDeathSequence());
+
+            gameManager.isTutorialActive = false;
         }
+
         SceneManager.LoadScene(nextSceneName);
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GlobalManager : MonoBehaviour
 {
@@ -27,5 +28,14 @@ public class GlobalManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    // Temporary test entry point until the lobby's "튜토리얼 다시보기" button exists.
+    // Right-click this component's header in the Inspector (works during Play Mode too) and pick this.
+    [ContextMenu("Debug: Launch Tutorial Now")]
+    private void DebugLaunchTutorial()
+    {
+        LaunchTutorialOnNextIngame = true;
+        SceneManager.LoadScene("InGame");
     }
 }

@@ -7,14 +7,14 @@ using UnityEngine.UI;
 public class HelpPanel : MonoBehaviour
 {
     [Serializable]
-    private class HelpPage
+    public class HelpPage
     {
         public Sprite image;
         [TextArea] public string description;
     }
 
     [Serializable]
-    private class HelpTopic
+    public class HelpTopic
     {
         public string title;
         public List<HelpPage> pages = new();

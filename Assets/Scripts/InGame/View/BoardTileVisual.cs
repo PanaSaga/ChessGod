@@ -12,9 +12,14 @@ public class BoardTileVisual : MonoBehaviour
     [SerializeField] private int enemyOverlaySortingOrder = -10;
     [Tooltip("Above the enemy overlay, so the player's range sprite shows on top when both overlap the same tile.")]
     [SerializeField] private int playerOverlaySortingOrder = -9;
+    [Tooltip("Below both attack-range overlays - it's a floor marking, not an active indicator.")]
+    [SerializeField] private int safeZoneOverlaySortingOrder = -11;
 
     private SpriteRenderer playerOverlayRenderer;
     private SpriteRenderer enemyOverlayRenderer;
+    // Tutorial-only. Not touched by ClearOverlay() below, since it isn't repainted every frame
+    // like the attack-range overlays - the tutorial sets and clears it explicitly.
+    private SpriteRenderer safeZoneOverlayRenderer;
 
     private void Awake() => EnsureOverlays();
 
@@ -35,6 +40,18 @@ public class BoardTileVisual : MonoBehaviour
         EnsureOverlays();
         playerOverlayRenderer.gameObject.SetActive(false);
         enemyOverlayRenderer.gameObject.SetActive(false);
+    }
+
+    public void SetSafeZoneOverlay(Sprite sprite, float alpha = 1f)
+    {
+        EnsureOverlays();
+        ApplyOverlay(safeZoneOverlayRenderer, sprite, alpha);
+    }
+
+    public void ClearSafeZoneOverlay()
+    {
+        EnsureOverlays();
+        safeZoneOverlayRenderer.gameObject.SetActive(false);
     }
 
     private void ApplyOverlay(SpriteRenderer renderer, Sprite sprite, float alpha)
@@ -58,6 +75,7 @@ public class BoardTileVisual : MonoBehaviour
     {
         if (playerOverlayRenderer == null) playerOverlayRenderer = CreateOverlayRenderer("PlayerAttackOverlay", playerOverlaySortingOrder);
         if (enemyOverlayRenderer == null) enemyOverlayRenderer = CreateOverlayRenderer("EnemyAttackOverlay", enemyOverlaySortingOrder);
+        if (safeZoneOverlayRenderer == null) safeZoneOverlayRenderer = CreateOverlayRenderer("SafeZoneOverlay", safeZoneOverlaySortingOrder);
     }
 
     // World-space, not local: the tile itself is non-uniformly scaled (thin in Y), which would
