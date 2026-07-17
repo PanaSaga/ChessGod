@@ -13,6 +13,10 @@ public class GlobalManager : MonoBehaviour
     public SoundManager SoundManager => soundManager;
     public CommonUIManager CommonUIManager => commonUIManager;
 
+    // Set right before loading the InGame scene to control which mode it starts in.
+    // TutorialManager reads and immediately resets this the moment it wakes up.
+    public bool LaunchTutorialOnNextIngame { get; set; }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)

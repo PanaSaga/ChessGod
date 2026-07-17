@@ -8,8 +8,4 @@ public class WhitePieceSO : ChessPieceSO
 
     [Header("Player transform visual")]
     public Sprite transformSprite;
-
-    [Header("���� ����")]
-    [Range(0f, 100f)]
-    public float spawnProbability; // SpawnManager�� ������ ���� Ȯ�� (0% ~ 100%)
 }

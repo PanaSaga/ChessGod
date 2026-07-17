@@ -11283,6 +11283,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1896828957}
   - {fileID: 1514934632}
   - {fileID: 423356427}
   - {fileID: 1456459474}
@@ -13578,8 +13579,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoardViewManager
   playerRangeSprite: {fileID: 21300000, guid: d0c4a55e8eb0d864396d87aa111bfa93, type: 3}
-  enemyRangeSprite: {fileID: 21300000, guid: 8d4b979ad5a91c44285e88a899c00019, type: 3}
-  overlapRangeSprite: {fileID: 21300000, guid: 6bb2162a49b302741a518fbd2c5b0d05, type: 3}
+  enemyPreviewRangeSprite: {fileID: 21300000, guid: 73816a5f0edc23947a1d7901284ee0a8, type: 3}
+  enemyPreviewRangeAlpha: 0.5
+  enemySettlementRangeSprite: {fileID: 21300000, guid: 8d4b979ad5a91c44285e88a899c00019, type: 3}
+  enemySettlementRangeAlpha: 1
   enemyPreviewInterval: 1
 --- !u!1 &1518534703
 GameObject:
@@ -16015,30 +16018,30 @@ MonoBehaviour:
   trLine: {fileID: 21300000, guid: 1e36323a98d212b4d8387a4e63c722aa, type: 3}
   blackTypeIcons:
   - pieceType: 1
-    icon: {fileID: 21300000, guid: 8a9abff78acca9248b50d529a7d3fe01, type: 3}
+    icon: {fileID: 21300000, guid: f3acbe219e8dbe541b5e719f189404d0, type: 3}
   - pieceType: 2
-    icon: {fileID: 21300000, guid: c4bf723509cab7847bb7a6f11f6b6e5f, type: 3}
+    icon: {fileID: 21300000, guid: aacfb7539b7f84f4f97930d6bdc106ba, type: 3}
   - pieceType: 3
-    icon: {fileID: 21300000, guid: 9765d0683b664e241bb76925937df3e6, type: 3}
+    icon: {fileID: 21300000, guid: fe32af0077ecd2a4594de5fbf91467c6, type: 3}
   - pieceType: 4
-    icon: {fileID: 21300000, guid: 8208364a2d7401040a56482b12bce387, type: 3}
+    icon: {fileID: 21300000, guid: 1f1d33c170c8ee347a2606362275dece, type: 3}
   - pieceType: 5
-    icon: {fileID: 21300000, guid: c2b02372b96b5054e88fcbda0cd843b7, type: 3}
+    icon: {fileID: 21300000, guid: 6f28ec20e975c084f9941bdd90cd0ec0, type: 3}
   - pieceType: 0
-    icon: {fileID: 21300000, guid: db0e0217657e270479299409b0b6c79c, type: 3}
+    icon: {fileID: 21300000, guid: 74ee5dace223f2f41b11f571c6f33c21, type: 3}
   whiteTypeIcons:
   - pieceType: 1
-    icon: {fileID: 21300000, guid: 5ef602ee0f2759a4f996ee58775b5cb5, type: 3}
+    icon: {fileID: 21300000, guid: 65d9fb4d572c9104b99e5949e5d8f314, type: 3}
   - pieceType: 2
-    icon: {fileID: 21300000, guid: 7aa2b96ebcdb2a04eb7965a4e18c6dc2, type: 3}
+    icon: {fileID: 21300000, guid: 8b05a9223d585bd47b5f7dde03fa34eb, type: 3}
   - pieceType: 3
-    icon: {fileID: 21300000, guid: 29b1efe88c2e7af4c91b54720d7c9f01, type: 3}
+    icon: {fileID: 21300000, guid: 0cb3b226f98d9e7418e51e1a41c4adc7, type: 3}
   - pieceType: 4
-    icon: {fileID: 21300000, guid: 07910acd8a652584cac08240cc0b1802, type: 3}
+    icon: {fileID: 21300000, guid: 64c0add840c51e14382f16b8aa4c15ae, type: 3}
   - pieceType: 5
-    icon: {fileID: 21300000, guid: c8792e6871b4a2a408ee1f545cfde52c, type: 3}
+    icon: {fileID: 21300000, guid: 325e0a2b76ead3e438f827bc805a0439, type: 3}
   - pieceType: 0
-    icon: {fileID: 21300000, guid: 3365d3300e30a7a40a798fab117df695, type: 3}
+    icon: {fileID: 21300000, guid: 32800340982ce66468ef6f51bd0f858d, type: 3}
 --- !u!1 &1825798719
 GameObject:
   m_ObjectHideFlags: 0
@@ -16474,7 +16477,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1349783974}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1896828958
 MonoBehaviour:
@@ -16611,6 +16614,148 @@ MonoBehaviour:
   jumpStaggerWindow: 0.2
   revealRingInterval: 0.05
   revealLingerDuration: 1
+  knockbackDistance: 0.25
+  knockbackDuration: 0.18
+  knockbackCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 4
+      outSlope: 4
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.49999797
+      value: 1.1606073
+      inSlope: 0.01854233
+      outSlope: 0.01854233
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.683332
+      outWeight: 0.81666744
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -1.3333334
+      outSlope: -1.3333334
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  knockbackTiltDegrees: 12
+  knockbackTiltAxis: {x: 0, y: 0, z: 1}
+  knockbackTiltCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 6.6666665
+      outSlope: 6.6666665
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.10833588
+      value: 0.996418
+      inSlope: 0.33333325
+      outSlope: 0.33333325
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.33748475
+      value: -0.47491455
+      inSlope: -1.1250001
+      outSlope: -1.1250001
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.5458313
+      value: 0.24642944
+      inSlope: 0.9999998
+      outSlope: 0.9999998
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.74999696
+      value: -0.11074219
+      inSlope: -0.625
+      outSlope: -0.625
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0.50000006
+      outSlope: 0.50000006
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  playerHitFlashColor: {r: 1, g: 0, b: 0, a: 1}
+  blackHitFlashColor: {r: 1, g: 0, b: 0, a: 1}
+  hitFlashBlinkCount: 2
+  hitFlashDuration: 0.5
+  deathFallDistance: 5
+  deathFallDuration: 0.35
+  deathFallCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.3333333
+      outSlope: 0.3333333
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.3
+      value: 0.1
+      inSlope: 0.8095238
+      outSlope: 0.8095238
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1.2857143
+      outSlope: 1.2857143
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  deathSpinDegrees: 720
+  deathSpinAxis: {x: 0, y: 0, z: 1}
+  deathArcPeakTime: 0.4
+  deathArcHeight: 1.2
+  deathArcPeakZ: 2
+  deathArcEndZ: -2
 --- !u!1 &1901914850
 GameObject:
   m_ObjectHideFlags: 0
@@ -18826,7 +18971,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 585905109}
   - {fileID: 1004287524}
-  - {fileID: 1896828957}
   - {fileID: 1349783974}
   - {fileID: 682862336}
   - {fileID: 1552980036}

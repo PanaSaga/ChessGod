@@ -3,11 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewBlackPiece", menuName = "ChessGame/BlackPieceData")]
 public class BlackPieceSO : ChessPieceSO
 {
-    [Header("ÈæÀÇ ¸» Àü¿ë µ¥ÀÌÅÍ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public int defaultHp = 1;
     public int scoreValue = 10;
-
-    [Header("½ºÆù ¼³Á¤")]
-    [Range(0f, 100f)]
-    public float spawnProbability; // SpawnManager°¡ ÂüÁ¶ÇÒ ½ºÆù È®·ü (0% ~ 100%)
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class CommonUIManager : MonoBehaviour
@@ -20,12 +21,18 @@ public class CommonUIManager : MonoBehaviour
     [Header("Help")]
     [SerializeField] private HelpPanel helpPanel;
 
+    [Header("Give up (ingame only)")]
+    [SerializeField] private Button giveUpButton;
+    [SerializeField] private ConfirmDialog confirmDialog;
+    [SerializeField] private string mainLobbySceneName = "MainLobby";
+
     private bool isSettingsOpen;
 
     private void Start()
     {
         if (closeSettingsButton != null) closeSettingsButton.onClick.AddListener(CloseSettings);
         if (saveButton != null) saveButton.onClick.AddListener(OnSavePressed);
+        if (giveUpButton != null) giveUpButton.onClick.AddListener(OnGiveUpPressed);
 
         if (bgmVolumeSlider != null) bgmVolumeSlider.onValueChanged.AddListener(OnBgmVolumeChanged);
         if (bgmMuteToggle != null) bgmMuteToggle.onValueChanged.AddListener(OnBgmMuteChanged);
@@ -39,7 +46,13 @@ public class CommonUIManager : MonoBehaviour
     {
         if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
 
-        // Closes on top of the stack first: help (if open), then settings underneath it.
+        // Closes on top of the stack first: the give-up confirm, then help, then settings underneath.
+        if (confirmDialog != null && confirmDialog.IsOpen)
+        {
+            confirmDialog.Cancel();
+            return;
+        }
+
         if (helpPanel != null && helpPanel.IsOpen)
         {
             helpPanel.CloseHelp();
@@ -57,6 +70,8 @@ public class CommonUIManager : MonoBehaviour
         isSettingsOpen = true;
         if (settingsPanelRoot != null) settingsPanelRoot.SetActive(true);
         RefreshVolumeControls();
+        // Only a live ingame session has anything to give up on.
+        if (giveUpButton != null) giveUpButton.gameObject.SetActive(GameManager.Instance != null);
         if (GameManager.Instance != null) GameManager.Instance.isPaused = true;
     }
 
@@ -85,4 +100,16 @@ public class CommonUIManager : MonoBehaviour
     private void OnSfxMuteChanged(bool isMuted) => GlobalManager.Instance.SoundManager.SetSfxMuted(isMuted);
 
     private void OnSavePressed() => GlobalManager.Instance.DataManager.SaveCurrentSlot();
+
+    private void OnGiveUpPressed()
+    {
+        confirmDialog?.Show(ConfirmGiveUp);
+    }
+
+    // Yes: close the (persistent) settings UI so it doesn't stay open on top of the lobby, then leave.
+    private void ConfirmGiveUp()
+    {
+        CloseSettings();
+        SceneManager.LoadScene(mainLobbySceneName);
+    }
 }

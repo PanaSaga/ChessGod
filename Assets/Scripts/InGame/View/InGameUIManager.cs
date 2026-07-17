@@ -16,13 +16,6 @@ public class InGameUIManager : MonoBehaviour
     }
 
     [Serializable]
-    private struct PieceIconEntry
-    {
-        public ChessPieceType pieceType;
-        public Sprite icon;
-    }
-
-    [Serializable]
     private struct AliveCountSlot
     {
         public ChessPieceType pieceType;
@@ -58,7 +51,7 @@ public class InGameUIManager : MonoBehaviour
     [SerializeField] private Image transformIconImage;
     [Tooltip("Shown when no transform is active (King).")]
     [SerializeField] private Sprite transformIdleIcon;
-    [SerializeField] private List<PieceIconEntry> transformIcons = new();
+    [SerializeField] private List<PieceTypeIconEntry> transformIcons = new();
     [SerializeField] private TMP_Text transformDurationText;
 
     [Header("Player avatar")]
@@ -141,12 +134,8 @@ public class InGameUIManager : MonoBehaviour
         if (overflow > 0) slot.overflowText.text = $"+{overflow}";
     }
 
-    private Sprite GetTransformIcon(ChessPieceType pieceType)
-    {
-        foreach (PieceIconEntry entry in transformIcons)
-            if (entry.pieceType == pieceType) return entry.icon;
-        return transformIdleIcon;
-    }
+    private Sprite GetTransformIcon(ChessPieceType pieceType) =>
+        PieceTypeIconLookup.Find(transformIcons, pieceType) ?? transformIdleIcon;
 
     private Sprite GetAvatarIcon(GameManager gameManager)
     {

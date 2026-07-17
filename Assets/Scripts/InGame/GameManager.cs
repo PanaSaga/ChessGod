@@ -61,6 +61,49 @@ public class GameManager : MonoBehaviour
     [Tooltip("How long each individual ring of tiles stays lit, counted from the moment that specific ring appeared. Every ring - from every piece - fades out on its own schedule.")]
     [SerializeField, Min(0f)] private float revealLingerDuration = 0.2f;
 
+    [Header("Hit reaction (survived)")]
+    [Tooltip("Grid-unit distance pushed away from the attacker before snapping back.")]
+    [SerializeField, Min(0f)] private float knockbackDistance = 0.25f;
+    [SerializeField, Min(0.01f)] private float knockbackDuration = 0.18f;
+    [Tooltip("0 = at rest, 1 = fully pushed out. Default snaps out fast, drifts back slowly, then snaps to rest fast at the very end (inertia).")]
+    [SerializeField] private AnimationCurve knockbackCurve = CreateDefaultKnockbackCurve();
+    [Tooltip("Peak tilt angle in degrees (multiplied by the wobble curve below).")]
+    [SerializeField, Min(0f)] private float knockbackTiltDegrees = 12f;
+    [Tooltip("Local axis to tilt around. Default assumes the sprite's own local Z reads as a screen-plane tilt - change this if the wobble looks wrong for how these prefabs are rotated.")]
+    [SerializeField] private Vector3 knockbackTiltAxis = Vector3.forward;
+    [Tooltip("Independent from the push curve above: a damped back-and-forth wobble (roly-poly toy), settling to 0 by the end.")]
+    [SerializeField] private AnimationCurve knockbackTiltCurve = CreateDefaultKnockbackTiltCurve();
+    [Tooltip("Color the player's sprite blinks to when hit (a plain color swap, not a different sprite).")]
+    [SerializeField] private Color playerHitFlashColor = Color.red;
+    [Tooltip("Color a black piece's sprite blinks to when hit.")]
+    [SerializeField] private Color blackHitFlashColor = Color.yellow;
+    [Tooltip("How many on/off blinks happen over Hit Flash Duration below. Independent from the knockback motion, so it can run longer than the knockback itself.")]
+    [SerializeField, Min(1)] private int hitFlashBlinkCount = 2;
+    [Tooltip("Total time the flash keeps blinking, in seconds.")]
+    [SerializeField, Min(0.01f)] private float hitFlashDuration = 0.5f;
+
+    [Header("Death animation")]
+    [Tooltip("World-unit distance flown off screen, away from whatever killed it. Wide/far so the arc below reads as a gentle ridge, not a sharp spike.")]
+    [SerializeField, Min(0f)] private float deathFallDistance = 16f;
+    [SerializeField, Min(0.01f)] private float deathFallDuration = 0.45f;
+    [Tooltip("0 at the instant it dies, 1 at the far end of the flight. Default bursts out fast, then gradually slows to a stop.")]
+    [SerializeField] private AnimationCurve deathFallCurve = CreateDefaultDeathFallCurve();
+    [Tooltip("Total degrees spun while flying off - a big value reads as a dramatic tumble.")]
+    [SerializeField] private float deathSpinDegrees = 720f;
+    [Tooltip("Local axis to spin around while flying off.")]
+    [SerializeField] private Vector3 deathSpinAxis = Vector3.forward;
+    [Header("Death animation - arc (a true parabola through these 3 points, always smooth)")]
+    [Tooltip("How far through the flight (0-1) the arc reaches its peak. Same timing is used for both the Y and Z parabola below.")]
+    [SerializeField, Range(0.05f, 0.95f)] private float deathArcPeakTime = 0.4f;
+    [Tooltip("World-unit Y height at the peak (starts and ends at 0).")]
+    [SerializeField, Min(0f)] private float deathArcHeight = 1.2f;
+    [Tooltip("Z value at the peak (this camera's 'reads as up' axis).")]
+    [SerializeField] private float deathArcPeakZ = 2f;
+    [Tooltip("Z value once it's fully gone (this camera's 'reads as down/away' axis) - starts at 0.")]
+    [SerializeField] private float deathArcEndZ = -2f;
+
+    private Vector2Int lastPlayerAttackerGrid;
+
     private SpawnManager spawnManager;
     private ControlManager controlManager;
     private BoardViewManager boardViewManager;
@@ -112,9 +155,9 @@ public class GameManager : MonoBehaviour
         if (pickedPiece == null || pickedPiece is BlackEnemyPiece || !(pickedPiece.pieceData is WhitePieceSO)) return;
 
         if (pickedPiece is WhiteBuffPiece buff)
-            playerPiece.ApplyBuff(buff.buffDuration, buff.attackBuffPower);
+            playerPiece.ApplyBuff(buff.duration, buff.attackBuffPower);
         else if (pickedPiece is WhiteTransformPiece transform)
-            playerPiece.ApplyTransform(transform.transformDuration, transform.pieceData);
+            playerPiece.ApplyTransform(transform.duration, transform.pieceData);
         else return;
 
         spawnManager.RemovePiece(pickedPiece);
@@ -156,14 +199,16 @@ public class GameManager : MonoBehaviour
         yield return StartCoroutine(PlayAttackJumpPhase(GetSettlingPieces()));
 
         // 2. Black attacks resolve first, then the player's.
-        ResolveBlackAttacks();
+        yield return StartCoroutine(ResolveBlackAttacks());
         if (playerPiece.hp <= 0)
         {
+            Vector2Int playerGrid = controlManager.GetPlayerGridPosition();
+            yield return StartCoroutine(AnimateDeath(playerPiece.transform, playerGrid, lastPlayerAttackerGrid, useLocalPosition: true, null));
             GameOver();
             yield break;
         }
 
-        ResolvePlayerAttack();
+        yield return StartCoroutine(ResolvePlayerAttack());
         playerScore += TurnClearScore;
 
         // 3. Surviving black pieces jump again to their new positions. The player can already move
@@ -197,8 +242,9 @@ public class GameManager : MonoBehaviour
             float delay = i * step;
 
             ChessPieceSO attackData = isPlayerPiece ? playerPiece.CurrentAttackData : piece.pieceData;
-            int maxRing = ChessAttackResolver.GetMaxRing(attackData, piece.gridPos);
-            longestFinish = Mathf.Max(longestFinish, delay + jumpDuration + maxRing * revealRingInterval);
+            // Only wait for the jump itself to land - the ring-by-ring range reveal keeps playing
+            // on its own independent schedule and doesn't need to finish before hit reactions can start.
+            longestFinish = Mathf.Max(longestFinish, delay + jumpDuration);
 
             StartCoroutine(JumpThenReveal(piece, delay, isPlayerPiece, attackData));
         }
@@ -249,9 +295,7 @@ public class GameManager : MonoBehaviour
         if (pieceTransform == null) yield break;
 
         Vector3 baseScale = pieceTransform.localScale;
-        SpriteRenderer spriteRenderer = pieceTransform.GetComponent<SpriteRenderer>();
-        // How far the sprite's bottom edge sits from its own pivot, used to keep that edge anchored to the ground while squashing.
-        float spriteHalfHeight = spriteRenderer != null && spriteRenderer.sprite != null ? spriteRenderer.sprite.bounds.extents.y : 0f;
+        float spriteHalfHeight = PieceSquashUtility.GetSpriteHalfHeight(pieceTransform);
 
         float elapsed = 0f;
         while (elapsed < jumpDuration)
@@ -265,9 +309,8 @@ public class GameManager : MonoBehaviour
             Vector3 jumpOffset = new(0f, jumpHeightY * arc, jumpHeightZ * arc);
 
             float squashY = squashCurve.Evaluate(t);
-            float squashXZ = 1f + (1f - squashY) * squashSideInfluence;
-            float heightDelta = spriteHalfHeight * baseScale.y * (1f - squashY);
-            Vector3 anchorOffset = pieceTransform.TransformDirection(new Vector3(0f, -heightDelta, 0f));
+            float squashXZ = PieceSquashUtility.GetSquashSideScale(squashY, squashSideInfluence);
+            Vector3 anchorOffset = PieceSquashUtility.GetGroundAnchorOffset(pieceTransform, spriteHalfHeight, baseScale.y, squashY);
 
             SetPosition(pieceTransform, groundPosition + jumpOffset + anchorOffset, useLocalPosition);
             pieceTransform.localScale = new Vector3(baseScale.x * squashXZ, baseScale.y * squashY, baseScale.z);
@@ -316,34 +359,234 @@ public class GameManager : MonoBehaviour
         return curve;
     }
 
-    private void ResolveBlackAttacks()
+    // 0 at rest, snaps out to 1 fast, drifts back slowly through most of the duration,
+    // then snaps back to 0 fast right at the end - an inertia/whiplash feel.
+    private static AnimationCurve CreateDefaultKnockbackCurve()
     {
-        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
-        bool playerHit = spawnManager.activePieces
-            .OfType<BlackEnemyPiece>()
-            .Any(enemy => ChessAttackResolver.GetAttackCells(enemy.pieceData, enemy.gridPos).Contains(playerPosition));
-
-        // Even if multiple enemies cover the player, damage is applied only once per turn.
-        if (playerHit) playerPiece.TakeDamage();
+        AnimationCurve curve = new(
+            new Keyframe(0f, 0f),
+            new Keyframe(0.12f, 1f),
+            new Keyframe(0.75f, 0.35f),
+            new Keyframe(1f, 0f));
+        for (int i = 0; i < curve.length; i++) curve.SmoothTangents(i, 0f);
+        return curve;
     }
 
-    private void ResolvePlayerAttack()
+    // Tips over hard, swings back past center, then rocks a couple more times with shrinking
+    // amplitude before settling flat - a damped spring, like a roly-poly toy losing momentum.
+    private static AnimationCurve CreateDefaultKnockbackTiltCurve()
+    {
+        AnimationCurve curve = new(
+            new Keyframe(0f, 0f),
+            new Keyframe(0.15f, 1f),
+            new Keyframe(0.4f, -0.5f),
+            new Keyframe(0.6f, 0.25f),
+            new Keyframe(0.8f, -0.1f),
+            new Keyframe(1f, 0f));
+        for (int i = 0; i < curve.length; i++) curve.SmoothTangents(i, 0f);
+        return curve;
+    }
+
+    // Bursts out fast right away, then gradually slows to a stop - shot out, then coasting.
+    private static AnimationCurve CreateDefaultDeathFallCurve()
+    {
+        AnimationCurve curve = new(
+            new Keyframe(0f, 0f),
+            new Keyframe(0.2f, 0.75f),
+            new Keyframe(1f, 1f));
+        for (int i = 0; i < curve.length; i++) curve.SmoothTangents(i, 0f);
+        return curve;
+    }
+
+    // The one true quadratic (parabola) passing through (0, start), (peakT, peak), (1, end).
+    // Always perfectly smooth - no keyframe/tangent guesswork, unlike an authored AnimationCurve.
+    private static float EvaluateParabola(float t, float start, float peak, float end, float peakT)
+    {
+        float a = (peak - start - (end - start) * peakT) / (peakT * peakT - peakT);
+        float b = (end - start) - a;
+        return a * t * t + b * t + start;
+    }
+
+    private IEnumerator ResolveBlackAttacks()
+    {
+        Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
+        List<BlackEnemyPiece> attackers = spawnManager.activePieces
+            .OfType<BlackEnemyPiece>()
+            .Where(enemy => ChessAttackResolver.GetAttackCells(enemy.pieceData, enemy.gridPos).Contains(playerPosition))
+            .ToList();
+
+        if (attackers.Count == 0) yield break;
+
+        // Even if multiple enemies cover the player, damage is applied only once per turn.
+        playerPiece.TakeDamage();
+
+        BlackEnemyPiece attacker = SelectKnockbackAttacker(playerPosition, attackers);
+        lastPlayerAttackerGrid = attacker.gridPos;
+        if (playerPiece.hp <= 0) yield break; // SettlementRoutine plays the death animation instead of a knockback.
+
+        yield return StartCoroutine(AnimateKnockback(playerPiece.transform, playerPosition, attacker.gridPos, useLocalPosition: true, playerHitFlashColor));
+    }
+
+    private IEnumerator ResolvePlayerAttack()
     {
         Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
         HashSet<Vector2Int> targets = ChessAttackResolver.GetAttackCells(playerPiece.CurrentAttackData, playerPosition);
 
+        // Knockbacks must finish before the reposition phase starts, or both animations would
+        // fight over the same piece's position (same bug class as the player-move/attack race).
+        List<Coroutine> knockbacks = new();
+
         foreach (BlackEnemyPiece enemy in spawnManager.activePieces.OfType<BlackEnemyPiece>().ToArray())
         {
             if (!targets.Contains(enemy.gridPos)) continue;
-            if (!enemy.TakeDamage(playerPiece.atk)) continue;
+
+            if (!enemy.TakeDamage(playerPiece.atk))
+            {
+                knockbacks.Add(StartCoroutine(AnimateKnockback(enemy.transform, enemy.gridPos, playerPosition, useLocalPosition: false, blackHitFlashColor)));
+                continue;
+            }
 
             playerScore += enemy.scoreValue;
             defeatedBlackPieceCount++;
             defeatedCountByType[enemy.PieceType] = defeatedCountByType.GetValueOrDefault(enemy.PieceType) + 1;
             if (enemy.PieceType == ChessPieceType.King)
                 playerPiece.RestoreHp(1);
-            spawnManager.RemovePiece(enemy);
+
+            // Remove it from play immediately (so scoring/reposition never see it again), but let
+            // it visually finish dying before the GameObject itself is destroyed.
+            spawnManager.activePieces.Remove(enemy);
+            StartCoroutine(AnimateDeath(enemy.transform, enemy.gridPos, playerPosition, useLocalPosition: false, () =>
+            {
+                if (enemy != null) Destroy(enemy.gameObject);
+            }));
         }
+
+        foreach (Coroutine knockback in knockbacks)
+            yield return knockback;
+    }
+
+    // Among the enemies currently hitting the player, picks which one's position determines the
+    // knockback direction: closest first, then the same "further down and further right" priority
+    // already used for screen draw order.
+    private static BlackEnemyPiece SelectKnockbackAttacker(Vector2Int playerPosition, List<BlackEnemyPiece> attackers)
+    {
+        return attackers
+            .OrderBy(enemy => ChebyshevDistance(enemy.gridPos, playerPosition))
+            .ThenByDescending(enemy => ChessBoardUtility.GetSortingOrder(enemy.gridPos, isPlayer: false))
+            .First();
+    }
+
+    private static int ChebyshevDistance(Vector2Int a, Vector2Int b) =>
+        Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
+
+    // Mathf.Sign(0) returns 1, not 0 - this gives the correct "no push on this axis" result instead.
+    private static float SignOrZero(int value) => value == 0 ? 0f : Mathf.Sign(value);
+
+    // Pushes away from the attacker's tile - straight if the attacker is orthogonal, diagonal if the attacker is diagonal - then eases back to the start position.
+    // The tilt rocks around the sprite's own bottom-center (like a roly-poly toy), not its transform origin.
+    private IEnumerator AnimateKnockback(Transform pieceTransform, Vector2Int selfGrid, Vector2Int attackerGrid, bool useLocalPosition, Color flashColor)
+    {
+        if (pieceTransform == null) yield break;
+
+        Vector2Int delta = selfGrid - attackerGrid;
+        Vector3 direction = new(SignOrZero(delta.x), 0f, SignOrZero(delta.y));
+        Vector3 basePosition = useLocalPosition ? pieceTransform.localPosition : pieceTransform.position;
+        Vector3 pushedOffset = direction * knockbackDistance;
+        Quaternion baseRotation = pieceTransform.localRotation;
+
+        // Pivot for the tilt: straight down from the sprite's own origin to its bottom edge (nine-slice
+        // anchor 8 / bottom-center), so it rocks on its "feet" instead of spinning around its middle.
+        float spriteHalfHeight = PieceSquashUtility.GetSpriteHalfHeight(pieceTransform);
+        Vector3 basePivotOffset = new(0f, -spriteHalfHeight, 0f);
+
+        // Tilt one way or the other depending on which side the push comes from.
+        float tiltSign = direction.x != 0f ? direction.x : direction.z;
+        if (tiltSign == 0f) tiltSign = 1f;
+
+        SpriteRenderer spriteRenderer = pieceTransform.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null) StartCoroutine(AnimateHitFlash(spriteRenderer, flashColor));
+
+        float elapsed = 0f;
+        while (elapsed < knockbackDuration)
+        {
+            if (pieceTransform == null) yield break;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / knockbackDuration);
+            float k = knockbackCurve.Evaluate(t);
+            float tilt = knockbackTiltCurve.Evaluate(t);
+
+            Vector3 slidPosition = basePosition + pushedOffset * k;
+            Quaternion tiltedRotation = baseRotation * Quaternion.AngleAxis(knockbackTiltDegrees * tilt * tiltSign, knockbackTiltAxis);
+
+            // Keep the bottom pivot point fixed at the (untilted) slid position while the sprite rocks around it.
+            Vector3 pivotPoint = slidPosition + baseRotation * basePivotOffset;
+            Vector3 tiltedPosition = pivotPoint - tiltedRotation * basePivotOffset;
+
+            SetPosition(pieceTransform, tiltedPosition, useLocalPosition);
+            pieceTransform.localRotation = tiltedRotation;
+            yield return null;
+        }
+
+        if (pieceTransform != null)
+        {
+            SetPosition(pieceTransform, basePosition, useLocalPosition);
+            pieceTransform.localRotation = baseRotation;
+        }
+    }
+
+    // Blinks between the sprite's own color and flashColor. Runs on its own clock (Hit Flash
+    // Duration), independent of the knockback motion, so it can keep blinking after the knockback settles.
+    private IEnumerator AnimateHitFlash(SpriteRenderer spriteRenderer, Color flashColor)
+    {
+        if (spriteRenderer == null) yield break;
+        Color originalColor = spriteRenderer.color;
+        float cycleDuration = hitFlashDuration / (hitFlashBlinkCount * 2f);
+
+        float elapsed = 0f;
+        while (elapsed < hitFlashDuration)
+        {
+            if (spriteRenderer == null) yield break;
+            elapsed += Time.deltaTime;
+            bool showFlash = Mathf.FloorToInt(elapsed / cycleDuration) % 2 == 0;
+            spriteRenderer.color = showFlash ? flashColor : originalColor;
+            yield return null;
+        }
+
+        if (spriteRenderer != null) spriteRenderer.color = originalColor;
+    }
+
+    // Fires off instantly (no wind-up) in the direction away from whatever killed it, arcing
+    // through both Y and Z as it flies, spinning hard, decelerating toward the end of the flight -
+    // then invokes onComplete (destroy, game over, etc).
+    private IEnumerator AnimateDeath(Transform pieceTransform, Vector2Int selfGrid, Vector2Int attackerGrid, bool useLocalPosition, System.Action onComplete)
+    {
+        if (pieceTransform == null) { onComplete?.Invoke(); yield break; }
+
+        Vector3 basePosition = useLocalPosition ? pieceTransform.localPosition : pieceTransform.position;
+        Quaternion baseRotation = pieceTransform.localRotation;
+
+        // Away from the attacker's tile, same straight/diagonal logic as the knockback push.
+        Vector2Int delta = selfGrid - attackerGrid;
+        Vector3 flingDirection = new(SignOrZero(delta.x), 0f, SignOrZero(delta.y));
+        if (flingDirection.sqrMagnitude < 0.01f) flingDirection = Vector3.forward;
+
+        float elapsed = 0f;
+        while (elapsed < deathFallDuration)
+        {
+            if (pieceTransform == null) { onComplete?.Invoke(); yield break; }
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / deathFallDuration);
+            float progress = deathFallCurve.Evaluate(t);
+            float arcY = EvaluateParabola(t, 0f, deathArcHeight, 0f, deathArcPeakTime);
+            float arcZ = EvaluateParabola(t, 0f, deathArcPeakZ, deathArcEndZ, deathArcPeakTime);
+
+            Vector3 offset = flingDirection * (progress * deathFallDistance) + new Vector3(0f, arcY, arcZ);
+            SetPosition(pieceTransform, basePosition + offset, useLocalPosition);
+            pieceTransform.localRotation = baseRotation * Quaternion.AngleAxis(deathSpinDegrees * progress, deathSpinAxis);
+            yield return null;
+        }
+
+        onComplete?.Invoke();
     }
 
     private void FinishTurn(Vector2Int playerPosition)

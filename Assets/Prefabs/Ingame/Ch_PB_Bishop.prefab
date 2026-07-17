@@ -127,7 +127,7 @@ MonoBehaviour:
   heartSpacing: 0.02
   displayRotation: {x: 90, y: 0, z: 0}
   typeIconSize: 0.4
-  typeIconSpacing: 0.06
+  typeIconSpacing: 0
   upBarOffset: {x: 0, y: 0.103, z: -0.5}
   trBarOffset: {x: 0, y: 0.103, z: -0.75}
   barWidth: 1

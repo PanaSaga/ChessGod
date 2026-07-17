@@ -248,9 +248,7 @@ public class SpawnManager : MonoBehaviour
     // Squashes the sprite down along its own local Y on impact, then springs back to normal - the "inertia" feel.
     private IEnumerator AnimateLandingSquash(Transform pieceTransform, Vector3 groundPosition, Vector3 baseScale)
     {
-        SpriteRenderer spriteRenderer = pieceTransform.GetComponent<SpriteRenderer>();
-        // How far the sprite's bottom edge sits from its own pivot, used to keep that edge anchored to the ground while squashing.
-        float spriteHalfHeight = spriteRenderer != null && spriteRenderer.sprite != null ? spriteRenderer.sprite.bounds.extents.y : 0f;
+        float spriteHalfHeight = PieceSquashUtility.GetSpriteHalfHeight(pieceTransform);
 
         float elapsed = 0f;
         while (elapsed < landingSquashDuration)
@@ -260,9 +258,8 @@ public class SpawnManager : MonoBehaviour
             float t = Mathf.Clamp01(elapsed / landingSquashDuration);
 
             float squashY = landingSquashCurve.Evaluate(t);
-            float squashXZ = 1f + (1f - squashY) * landingSquashSideInfluence;
-            float heightDelta = spriteHalfHeight * baseScale.y * (1f - squashY);
-            Vector3 anchorOffset = pieceTransform.TransformDirection(new Vector3(0f, -heightDelta, 0f));
+            float squashXZ = PieceSquashUtility.GetSquashSideScale(squashY, landingSquashSideInfluence);
+            Vector3 anchorOffset = PieceSquashUtility.GetGroundAnchorOffset(pieceTransform, spriteHalfHeight, baseScale.y, squashY);
 
             pieceTransform.position = groundPosition + anchorOffset;
             pieceTransform.localScale = new Vector3(baseScale.x * squashXZ, baseScale.y * squashY, baseScale.z);

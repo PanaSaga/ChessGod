@@ -61,6 +61,14 @@ public class TutorialManager : MonoBehaviour
 
     private void Start()
     {
+        if (GlobalManager.Instance == null || !GlobalManager.Instance.LaunchTutorialOnNextIngame)
+        {
+            if (panelRoot != null) panelRoot.SetActive(false);
+            enabled = false;
+            return;
+        }
+        GlobalManager.Instance.LaunchTutorialOnNextIngame = false;
+
         gameManager = FindFirstObjectByType<GameManager>();
         controlManager = FindFirstObjectByType<ControlManager>();
         spawnManager = FindFirstObjectByType<SpawnManager>();

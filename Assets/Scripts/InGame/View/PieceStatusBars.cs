@@ -71,22 +71,21 @@ public class PieceStatusBars : MonoBehaviour
             return;
         }
 
-        // White buff/transform pieces on the board: no HP, just a centered type icon.
-        if (basePiece == null) return;
-        Sprite whiteIcon = sprites.GetWhiteTypeIcon(basePiece.PieceType);
-        hearts.Set(0, 0, whiteIcon);
-        hearts.Follow(transform);
+        // White buff/transform pieces on the board show no status bar at all.
     }
 
     private void BuildVisuals()
     {
+        initialized = true;
+        // White buff/transform pieces show no status bar at all - nothing to build for them.
+        if (playerPiece == null && blackPiece == null) return;
+
         hearts = CreateHeartRow();
         if (playerPiece != null)
         {
             up = CreateBar("Up", sprites.upLine, sprites.upBar, upBarOffset, sortingOrder + 10);
             tr = CreateBar("Tr", sprites.trLine, sprites.trBar, trBarOffset, sortingOrder + 12);
         }
-        initialized = true;
     }
 
     private HeartRow CreateHeartRow()

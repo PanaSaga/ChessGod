@@ -31,32 +31,39 @@ public class SoundManager : MonoBehaviour
     public void SetBgmVolume(float volume)
     {
         if (dataManager == null || dataManager.GlobalSettings == null) return;
-        dataManager.GlobalSettings.bgmVolume = volume;
-        if (!dataManager.GlobalSettings.isBgmMuted) bgmSource.volume = volume;
-        dataManager.SaveGlobalSettings();
+        ApplyVolume(bgmSource, ref dataManager.GlobalSettings.bgmVolume, dataManager.GlobalSettings.isBgmMuted, volume);
     }
 
     public void SetBgmMuted(bool isMuted)
     {
         if (dataManager == null || dataManager.GlobalSettings == null) return;
-        dataManager.GlobalSettings.isBgmMuted = isMuted;
-        bgmSource.volume = isMuted ? 0f : dataManager.GlobalSettings.bgmVolume;
-        dataManager.SaveGlobalSettings();
+        ApplyMute(bgmSource, ref dataManager.GlobalSettings.isBgmMuted, dataManager.GlobalSettings.bgmVolume, isMuted);
     }
 
     public void SetSfxVolume(float volume)
     {
         if (dataManager == null || dataManager.GlobalSettings == null) return;
-        dataManager.GlobalSettings.sfxVolume = volume;
-        if (!dataManager.GlobalSettings.isSfxMuted) sfxSource.volume = volume;
-        dataManager.SaveGlobalSettings();
+        ApplyVolume(sfxSource, ref dataManager.GlobalSettings.sfxVolume, dataManager.GlobalSettings.isSfxMuted, volume);
     }
 
     public void SetSfxMuted(bool isMuted)
     {
         if (dataManager == null || dataManager.GlobalSettings == null) return;
-        dataManager.GlobalSettings.isSfxMuted = isMuted;
-        sfxSource.volume = isMuted ? 0f : dataManager.GlobalSettings.sfxVolume;
+        ApplyMute(sfxSource, ref dataManager.GlobalSettings.isSfxMuted, dataManager.GlobalSettings.sfxVolume, isMuted);
+    }
+
+    // Shared by all four Set*Volume/Set*Muted calls above - only the source and which field they touch differ.
+    private void ApplyVolume(AudioSource source, ref float storedVolume, bool isMuted, float newVolume)
+    {
+        storedVolume = newVolume;
+        if (!isMuted) source.volume = newVolume;
+        dataManager.SaveGlobalSettings();
+    }
+
+    private void ApplyMute(AudioSource source, ref bool storedMuted, float volume, bool isMuted)
+    {
+        storedMuted = isMuted;
+        source.volume = isMuted ? 0f : volume;
         dataManager.SaveGlobalSettings();
     }
 

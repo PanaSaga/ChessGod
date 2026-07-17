@@ -17,10 +17,12 @@ public class BoardViewManager : MonoBehaviour
     [Header("Attack range overlay sprites")]
     [Tooltip("Board_ChessW_ATK: player-only range.")]
     [SerializeField] private Sprite playerRangeSprite;
-    [Tooltip("Board_ChessB_ATK: enemy-only range.")]
-    [SerializeField] private Sprite enemyRangeSprite;
-    [Tooltip("Board_ChessWB_ATK: player and enemy ranges overlapping.")]
-    [SerializeField] private Sprite overlapRangeSprite;
+    [Tooltip("Enemy range sprite shown while cycling through enemies during the player's own turn.")]
+    [SerializeField] private Sprite enemyPreviewRangeSprite;
+    [Range(0f, 1f)] [SerializeField] private float enemyPreviewRangeAlpha = 1f;
+    [Tooltip("Enemy range sprite shown during the attack settlement's ring-by-ring reveal.")]
+    [SerializeField] private Sprite enemySettlementRangeSprite;
+    [Range(0f, 1f)] [SerializeField] private float enemySettlementRangeAlpha = 1f;
     [SerializeField, Min(0.1f)] private float enemyPreviewInterval = 1f;
 
     private BoardManager boardManager;
@@ -86,7 +88,8 @@ public class BoardViewManager : MonoBehaviour
         activeRings.RemoveAll(ring => now >= ring.expireTime);
 
         Dictionary<Vector2Int, bool> playerCovered = new();
-        Dictionary<Vector2Int, bool> enemyCovered = new();
+        // Kept separate from the settlement reveal below so each can use its own sprite/alpha.
+        Dictionary<Vector2Int, bool> enemySettlementCovered = new();
 
         // Leftover attack-range rings keep fading out on their own schedule no matter what the
         // game is doing right now - settling or not - so nothing ever gets cut off abruptly.
@@ -96,10 +99,11 @@ public class BoardViewManager : MonoBehaviour
             foreach (Vector2Int cell in ring.cells)
             {
                 if (ring.isPlayer) playerCovered[cell] = true;
-                else enemyCovered[cell] = true;
+                else enemySettlementCovered[cell] = true;
             }
         }
 
+        Dictionary<Vector2Int, bool> enemyPreviewCovered = new();
         if (GameManager.Instance == null || !GameManager.Instance.isSettling)
         {
             // Normal gameplay: the player's live range is always shown, plus one enemy's range cycling.
@@ -108,14 +112,20 @@ public class BoardViewManager : MonoBehaviour
 
             List<BlackEnemyPiece> enemies = spawnManager.activePieces.OfType<BlackEnemyPiece>().ToList();
             foreach (Vector2Int cell in GetVisibleEnemyCells(enemies))
-                enemyCovered[cell] = true;
+                enemyPreviewCovered[cell] = true;
         }
 
+        // Player and enemy each get their own overlay layer, so a tile covered by both shows both
+        // sprites stacked at once (player's layer draws on top - see BoardTileVisual's sorting orders).
         foreach (Vector2Int cell in playerCovered.Keys)
-            Paint(cell, enemyCovered.ContainsKey(cell) ? overlapRangeSprite : playerRangeSprite);
+            PaintPlayer(cell, playerRangeSprite);
 
-        foreach (Vector2Int cell in enemyCovered.Keys)
-            if (!playerCovered.ContainsKey(cell)) Paint(cell, enemyRangeSprite);
+        // Settlement is painted after preview so it visually wins on the rare frame both apply to the same cell.
+        foreach (Vector2Int cell in enemyPreviewCovered.Keys)
+            PaintEnemy(cell, enemyPreviewRangeSprite, enemyPreviewRangeAlpha);
+
+        foreach (Vector2Int cell in enemySettlementCovered.Keys)
+            PaintEnemy(cell, enemySettlementRangeSprite, enemySettlementRangeAlpha);
     }
 
     // Chebyshev distance from the attacker's own tile: how many "rings" out a cell sits.
@@ -143,8 +153,13 @@ public class BoardViewManager : MonoBehaviour
         return result;
     }
 
-    private void Paint(Vector2Int position, Sprite sprite)
+    private void PaintPlayer(Vector2Int position, Sprite sprite)
     {
-        if (boardManager.TryGetTile(position, out BoardTileVisual tile)) tile.SetOverlay(sprite);
+        if (boardManager.TryGetTile(position, out BoardTileVisual tile)) tile.SetPlayerOverlay(sprite);
+    }
+
+    private void PaintEnemy(Vector2Int position, Sprite sprite, float alpha)
+    {
+        if (boardManager.TryGetTile(position, out BoardTileVisual tile)) tile.SetEnemyOverlay(sprite, alpha);
     }
 }
