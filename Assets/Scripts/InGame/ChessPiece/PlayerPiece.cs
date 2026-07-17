@@ -105,19 +105,16 @@ public class PlayerPiece : ChessPiece
 
     private void ApplyTransformVisual(ChessPieceSO transformData)
     {
-        if (playerRenderer == null || transformData.prefab == null) return;
+        if (playerRenderer == null) return;
 
-        SpriteRenderer sourceRenderer = transformData.prefab.GetComponentInChildren<SpriteRenderer>(true);
-        if (sourceRenderer == null || sourceRenderer.sprite == null)
+        WhitePieceSO whiteData = transformData as WhitePieceSO;
+        if (whiteData == null || whiteData.transformSprite == null)
         {
-            Debug.LogError($"The prefab assigned to {transformData.name} needs a SpriteRenderer with a sprite.");
+            Debug.LogError($"{transformData.name} needs a Transform Sprite assigned for the player's transform visual.");
             return;
         }
 
-        playerRenderer.sprite = sourceRenderer.sprite;
-        playerRenderer.color = sourceRenderer.color;
-        playerRenderer.flipX = sourceRenderer.flipX;
-        playerRenderer.flipY = sourceRenderer.flipY;
+        playerRenderer.sprite = whiteData.transformSprite;
     }
 
     private void RestoreKingVisual()

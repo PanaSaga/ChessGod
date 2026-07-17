@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,6 +12,15 @@ public class SpawnManager : MonoBehaviour
     [Header("ScriptableObject data")]
     [SerializeField] private BlackPieceSO[] blackPieceData;
     [SerializeField] private WhitePieceSO[] whitePieceData;
+
+    [Header("Black piece spawn drop")]
+    [SerializeField, Min(0f)] private float dropHeightY = 2.5f;
+    [SerializeField] private float dropOffsetZ = 2f;
+    [SerializeField, Min(0.01f)] private float dropDuration = 0.35f;
+    [SerializeField, Min(0.01f)] private float landingSquashDuration = 0.18f;
+    [SerializeField, Range(0f, 1f)] private float landingSquashSideInfluence = 0.4f;
+    [SerializeField] private AnimationCurve dropFallCurve = CreateDefaultDropFallCurve();
+    [SerializeField] private AnimationCurve landingSquashCurve = CreateDefaultLandingSquashCurve();
 
     public readonly List<ChessPiece> activePieces = new();
 
@@ -95,8 +105,14 @@ public class SpawnManager : MonoBehaviour
             return null;
         }
 
+        Vector3 finalPosition = ChessBoardUtility.GridToWorld(gridPosition);
+        bool isBlackPiece = data is BlackPieceSO;
+        Vector3 spawnPosition = isBlackPiece
+            ? finalPosition + new Vector3(0f, dropHeightY, dropOffsetZ)
+            : finalPosition;
+
         // Keep the prefab's authored orientation (for example, a 2D chess sprite rotated 90 degrees onto the board).
-        GameObject instance = Instantiate(data.prefab, ChessBoardUtility.GridToWorld(gridPosition), data.prefab.transform.rotation);
+        GameObject instance = Instantiate(data.prefab, spawnPosition, data.prefab.transform.rotation);
         ChessPiece piece = instance.GetComponent<ChessPiece>();
         if (piece == null)
         {
@@ -114,6 +130,10 @@ public class SpawnManager : MonoBehaviour
         ChessBoardUtility.ApplySortingOrder(instance.GetComponentInChildren<SpriteRenderer>(), gridPosition, isPlayer: false);
 
         activePieces.Add(piece);
+
+        if (isBlackPiece)
+            StartCoroutine(AnimateSpawnDrop(instance.transform, finalPosition));
+
         return piece;
     }
 
@@ -201,5 +221,83 @@ public class SpawnManager : MonoBehaviour
         piece.gridPos = position;
         piece.transform.position = ChessBoardUtility.GridToWorld(position);
         ChessBoardUtility.ApplySortingOrder(piece.GetComponentInChildren<SpriteRenderer>(), position, isPlayer: false);
+    }
+
+    // Falls from above the board down to its tile, slow at first and speeding up, then hands off to the landing squash.
+    private IEnumerator AnimateSpawnDrop(Transform pieceTransform, Vector3 finalPosition)
+    {
+        Vector3 startPosition = finalPosition + new Vector3(0f, dropHeightY, dropOffsetZ);
+        Vector3 baseScale = pieceTransform.localScale;
+
+        float elapsed = 0f;
+        while (elapsed < dropDuration)
+        {
+            if (pieceTransform == null) yield break;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / dropDuration);
+            pieceTransform.position = Vector3.Lerp(startPosition, finalPosition, dropFallCurve.Evaluate(t));
+            yield return null;
+        }
+
+        if (pieceTransform == null) yield break;
+        pieceTransform.position = finalPosition;
+
+        yield return StartCoroutine(AnimateLandingSquash(pieceTransform, finalPosition, baseScale));
+    }
+
+    // Squashes the sprite down along its own local Y on impact, then springs back to normal - the "inertia" feel.
+    private IEnumerator AnimateLandingSquash(Transform pieceTransform, Vector3 groundPosition, Vector3 baseScale)
+    {
+        SpriteRenderer spriteRenderer = pieceTransform.GetComponent<SpriteRenderer>();
+        // How far the sprite's bottom edge sits from its own pivot, used to keep that edge anchored to the ground while squashing.
+        float spriteHalfHeight = spriteRenderer != null && spriteRenderer.sprite != null ? spriteRenderer.sprite.bounds.extents.y : 0f;
+
+        float elapsed = 0f;
+        while (elapsed < landingSquashDuration)
+        {
+            if (pieceTransform == null) yield break;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / landingSquashDuration);
+
+            float squashY = landingSquashCurve.Evaluate(t);
+            float squashXZ = 1f + (1f - squashY) * landingSquashSideInfluence;
+            float heightDelta = spriteHalfHeight * baseScale.y * (1f - squashY);
+            Vector3 anchorOffset = pieceTransform.TransformDirection(new Vector3(0f, -heightDelta, 0f));
+
+            pieceTransform.position = groundPosition + anchorOffset;
+            pieceTransform.localScale = new Vector3(baseScale.x * squashXZ, baseScale.y * squashY, baseScale.z);
+            yield return null;
+        }
+
+        if (pieceTransform != null)
+        {
+            pieceTransform.position = groundPosition;
+            pieceTransform.localScale = baseScale;
+        }
+    }
+
+    // Barely moves at first, then accelerates hard into the landing - like gravity pulling it down.
+    private static AnimationCurve CreateDefaultDropFallCurve()
+    {
+        AnimationCurve curve = new(
+            new Keyframe(0f, 0f),
+            new Keyframe(0.4f, 0.15f),
+            new Keyframe(0.75f, 0.55f),
+            new Keyframe(1f, 1f));
+        for (int i = 0; i < curve.length; i++) curve.SmoothTangents(i, 0f);
+        return curve;
+    }
+
+    // 1 = normal. Flattens hard right on impact, springs slightly tall, then settles back to normal.
+    private static AnimationCurve CreateDefaultLandingSquashCurve()
+    {
+        AnimationCurve curve = new(
+            new Keyframe(0f, 1f),
+            new Keyframe(0.15f, 0.55f),
+            new Keyframe(0.45f, 1.15f),
+            new Keyframe(0.75f, 0.95f),
+            new Keyframe(1f, 1f));
+        for (int i = 0; i < curve.length; i++) curve.SmoothTangents(i, 0f);
+        return curve;
     }
 }

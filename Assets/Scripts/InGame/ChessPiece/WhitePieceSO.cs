@@ -3,10 +3,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewWhitePiece", menuName = "ChessGame/WhitePieceData")]
 public class WhitePieceSO : ChessPieceSO
 {
-    [Header("¹éÀÇ ¸» Àü¿ë µ¥ÀÌÅÍ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public float duration = 20f;
 
-    [Header("½ºÆù ¼³Á¤")]
+    [Header("Player transform visual")]
+    public Sprite transformSprite;
+
+    [Header("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½")]
     [Range(0f, 100f)]
-    public float spawnProbability; // SpawnManager°¡ ÂüÁ¶ÇÒ ½ºÆù È®·ü (0% ~ 100%)
+    public float spawnProbability; // SpawnManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ (0% ~ 100%)
 }

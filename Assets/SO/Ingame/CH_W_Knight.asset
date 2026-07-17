@@ -14,5 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WhitePieceSO
   pieceType: 2
   prefab: {fileID: 5212569226212328258, guid: 097ff908bafb57f42a805292731f0f47, type: 3}
+  attackPattern: 0
+  attackRange: 7
+  pawnForwardZ: -1
   duration: 20
+  transformSprite: {fileID: 21300000, guid: 912f2ca3de5e86041a8fc22d4a60f54f, type: 3}
   spawnProbability: 40
