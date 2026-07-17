@@ -78,6 +78,7 @@ public class BoardViewManager : MonoBehaviour
     private void LateUpdate()
     {
         if (boardManager == null || spawnManager == null || playerPiece == null) return;
+        if (GameManager.Instance != null && GameManager.Instance.isPaused) return;
 
         foreach (BoardTileVisual tile in boardManager.GetAllTiles()) tile.ClearOverlay();
 

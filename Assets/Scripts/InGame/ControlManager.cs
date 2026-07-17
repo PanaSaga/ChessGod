@@ -44,7 +44,7 @@ public class ControlManager : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance != null && (GameManager.Instance.isMovementLocked || GameManager.Instance.isTutorialPaused)) return;
+        if (GameManager.Instance != null && (GameManager.Instance.isMovementLocked || GameManager.Instance.isTutorialPaused || GameManager.Instance.isPaused)) return;
 
         cooldownTimer -= Time.deltaTime;
         if (cooldownTimer <= 0f && heldDirection != Vector2Int.zero)
@@ -99,4 +99,13 @@ public class ControlManager : MonoBehaviour
     }
 
     public Vector2Int GetPlayerGridPosition() => new Vector2Int(playerX, playerZ);
+
+    // Immediately finishes any in-progress move so the player's visual position matches its grid position exactly.
+    // Called right before settlement starts, so the attack animation never captures a mid-lerp position.
+    public void SnapToGrid()
+    {
+        isMoving = false;
+        if (playerPiece != null)
+            playerPiece.transform.localPosition = ChessBoardUtility.GridToWorld(playerPiece.gridPos);
+    }
 }

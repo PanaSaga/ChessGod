@@ -49,6 +49,8 @@ public class PlayerPiece : ChessPiece
 
     private void Update()
     {
+        if (GameManager.Instance != null && GameManager.Instance.isPaused) return;
+
         if (isBuffActive)
         {
             buffTimer -= Time.deltaTime;
@@ -71,6 +73,19 @@ public class PlayerPiece : ChessPiece
                 Debug.Log("Transform ended. Attack range returned to the player SO.");
             }
         }
+    }
+
+    // Immediately clears any active buff/transform, ignoring their remaining time. Used on game over.
+    public void ClearAllEffects()
+    {
+        isBuffActive = false;
+        buffTimer = 0f;
+        atk = 1;
+
+        isTransformActive = false;
+        transformTimer = 0f;
+        transformedAttackData = null;
+        RestoreKingVisual();
     }
 
     public void ApplyBuff(float duration, int buffAtk)

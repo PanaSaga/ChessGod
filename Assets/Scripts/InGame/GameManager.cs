@@ -22,6 +22,8 @@ public class GameManager : MonoBehaviour
     public float maxTurnTime = 10f;
     public bool isSettling;
     public bool isGameOver;
+    // Set by CommonUIManager while the settings popup is open.
+    public bool isPaused;
     // Set by TutorialManager while an explanation panel is on screen.
     public bool isTutorialPaused;
     // Set by TutorialManager for the whole tutorial session; suppresses automatic white-piece spawns.
@@ -63,6 +65,7 @@ public class GameManager : MonoBehaviour
     private ControlManager controlManager;
     private BoardViewManager boardViewManager;
     private PlayerPiece playerPiece;
+    private GameOverPopup gameOverPopup;
     private bool forceQueenNextSpawn;
     private int turnsWithoutQueen;
     private int forceKnightTransformTurns;
@@ -80,6 +83,7 @@ public class GameManager : MonoBehaviour
         controlManager = FindFirstObjectByType<ControlManager>();
         boardViewManager = FindFirstObjectByType<BoardViewManager>();
         playerPiece = FindFirstObjectByType<PlayerPiece>();
+        gameOverPopup = FindFirstObjectByType<GameOverPopup>();
         if (spawnManager == null || controlManager == null || playerPiece == null)
         {
             Debug.LogError("GameManager requires SpawnManager, ControlManager, and PlayerPiece in the scene.");
@@ -95,7 +99,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (isSettling || isGameOver || isTutorialPaused || isTutorialTurnEndBlocked) return;
+        if (isPaused || isSettling || isGameOver || isTutorialPaused || isTutorialTurnEndBlocked) return;
         turnTimer -= Time.deltaTime;
         if (turnTimer <= 0f || (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame))
             StartSettlement();
@@ -119,6 +123,7 @@ public class GameManager : MonoBehaviour
     private void StartSettlement()
     {
         if (isSettling || isGameOver) return;
+        controlManager.SnapToGrid();
         isSettling = true;
         isMovementLocked = true;
         PreviewTurnResult();
@@ -393,8 +398,10 @@ public class GameManager : MonoBehaviour
     {
         isGameOver = true;
         isSettling = true;
+        isPaused = true;
+        playerPiece.ClearAllEffects();
         Debug.Log($"Game Over. Final score: {playerScore}");
-        // Connect the lobby scene/UI transition here when it is available.
+        gameOverPopup?.Show(playerScore, currentStage, currentTurn);
     }
 
 }
