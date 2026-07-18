@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc2c6e75685b6424bb88bbbf74bc0569, type: 3}
+  m_Name: Sub_BrilliantMove
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementSO
+  achievementId: S_BrilliantMove
+  displayName: "\uD0C1\uC6D4\uC218"
+  description: "\uD0B9\uC774 \uC544\uB2CC \uC0C1\uD0DC\uB85C \uC801\uC758 \uD038\uACFC
+    \uB3D9\uADC0\uC5B4\uC9C4 \uB204\uC801 5\uD68C"
+  icon: {fileID: 0}
+  isSecret: 0
+  targetCount: 5
+  conditionGroups:
+  - eventType: 1
+    requiredPlayerForm: 30
+    requirePawnBuffActive: 0
+    targetPieceType: 16
+    requireMultiKillInSingleAttack: 0
+    minKillCountInSingleAttack: 0
+    requirePlayerDamagedSimultaneously: 1
+    useStatCondition: 0
+    statType: 0
+    statCompare: 0
+    statValue: 0
+    useTurnEndMethodCondition: 0
+    turnEndMethod: 0
+    useRemainingTimeCondition: 0
+    remainingTimeCompare: 0
+    remainingTimeValue: 0
+    useBoardBlackCountCondition: 0
+    boardBlackCountCompare: 0
+    boardBlackCountValue: 0
+    useBoardClearedCondition: 0

@@ -9,10 +9,14 @@ public class GlobalManager : MonoBehaviour
     [SerializeField] private DataManager dataManager;
     [SerializeField] private SoundManager soundManager;
     [SerializeField] private CommonUIManager commonUIManager;
+    [SerializeField] private AchievementManager achievementManager;
+    [SerializeField] private AchievementUIManager achievementUIManager;
 
     public DataManager DataManager => dataManager;
     public SoundManager SoundManager => soundManager;
     public CommonUIManager CommonUIManager => commonUIManager;
+    public AchievementManager AchievementManager => achievementManager;
+    public AchievementUIManager AchievementUIManager => achievementUIManager;
 
     // Set right before loading the InGame scene to control which mode it starts in.
     // TutorialManager reads and immediately resets this the moment it wakes up.

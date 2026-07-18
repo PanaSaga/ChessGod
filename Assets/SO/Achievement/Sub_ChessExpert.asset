@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc2c6e75685b6424bb88bbbf74bc0569, type: 3}
+  m_Name: Sub_ChessExpert
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementSO
+  achievementId: S_ChessExpert
+  displayName: "\uCCB4\uC2A4\uC804\uBB38\uAC00"
+  description: "\uC810\uC218 2000\uC810 \uC774\uC0C1 \uB2EC\uC131"
+  icon: {fileID: 0}
+  isSecret: 0
+  targetCount: 1
+  conditionGroups:
+  - eventType: 2
+    requiredPlayerForm: 0
+    requirePawnBuffActive: 0
+    targetPieceType: 0
+    requireMultiKillInSingleAttack: 0
+    minKillCountInSingleAttack: 0
+    requirePlayerDamagedSimultaneously: 0
+    useStatCondition: 1
+    statType: 2
+    statCompare: 0
+    statValue: 2000
+    useTurnEndMethodCondition: 0
+    turnEndMethod: 0
+    useRemainingTimeCondition: 0
+    remainingTimeCompare: 0
+    remainingTimeValue: 0
+    useBoardBlackCountCondition: 0
+    boardBlackCountCompare: 0
+    boardBlackCountValue: 0
+    useBoardClearedCondition: 0

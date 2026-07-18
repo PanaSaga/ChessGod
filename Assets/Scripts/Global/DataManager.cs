@@ -62,6 +62,33 @@ public class DataManager : MonoBehaviour
         SaveCurrentSlot();
     }
 
+    public int GetAchievementProgress(string achievementId)
+    {
+        if (currentSlot == null) return 0;
+        AchievementProgressEntry entry = currentSlot.achievementProgress.Find(e => e.achievementId == achievementId);
+        return entry?.count ?? 0;
+    }
+
+    public void SetAchievementProgress(string achievementId, int count)
+    {
+        if (currentSlot == null) return;
+        AchievementProgressEntry entry = currentSlot.achievementProgress.Find(e => e.achievementId == achievementId);
+        if (entry == null)
+            currentSlot.achievementProgress.Add(new AchievementProgressEntry { achievementId = achievementId, count = count });
+        else
+            entry.count = count;
+        SaveCurrentSlot();
+    }
+
+    public bool IsAchievementAcknowledged(string achievementId) => currentSlot != null && currentSlot.acknowledgedAchievementIds.Contains(achievementId);
+
+    public void AcknowledgeAchievement(string achievementId)
+    {
+        if (currentSlot == null || IsAchievementAcknowledged(achievementId)) return;
+        currentSlot.acknowledgedAchievementIds.Add(achievementId);
+        SaveCurrentSlot();
+    }
+
     public bool IsStoryUnlocked(string storyId) => currentSlot != null && currentSlot.unlockedStoryIds.Contains(storyId);
 
     public void UnlockStory(string storyId)

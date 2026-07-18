@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc2c6e75685b6424bb88bbbf74bc0569, type: 3}
+  m_Name: Sub_Genocide
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementSO
+  achievementId: S_Genocide
+  displayName: "\uC81C\uB178\uC0AC\uC774\uB4DC"
+  description: "2\uC2A4\uD14C\uC774\uC9C0 \uC774\uD6C4 \uBCF4\uB4DC \uC704\uC758
+    \uCCB4\uC2A4\uB9D0\uC744 \uC804\uBD80 \uC81C\uAC70 \uB204\uC801 3\uD68C"
+  icon: {fileID: 0}
+  isSecret: 0
+  targetCount: 3
+  conditionGroups:
+  - eventType: 2
+    requiredPlayerForm: 0
+    requirePawnBuffActive: 0
+    targetPieceType: 0
+    requireMultiKillInSingleAttack: 0
+    minKillCountInSingleAttack: 0
+    requirePlayerDamagedSimultaneously: 0
+    useStatCondition: 1
+    statType: 0
+    statCompare: 0
+    statValue: 2
+    useTurnEndMethodCondition: 0
+    turnEndMethod: 0
+    useRemainingTimeCondition: 0
+    remainingTimeCompare: 0
+    remainingTimeValue: 0
+    useBoardBlackCountCondition: 1
+    boardBlackCountCompare: 0
+    boardBlackCountValue: 0
+    useBoardClearedCondition: 1

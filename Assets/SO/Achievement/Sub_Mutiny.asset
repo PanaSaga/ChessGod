@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc2c6e75685b6424bb88bbbf74bc0569, type: 3}
+  m_Name: Sub_Mutiny
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementSO
+  achievementId: S_Mutiny
+  displayName: "\uD558\uADF9\uC0C1"
+  description: "\uB098\uC774\uD2B8 \uC0C1\uD0DC\uB85C \uD038 \uCC98\uCE58 \uB204\uC801
+    10\uD68C"
+  icon: {fileID: 0}
+  isSecret: 0
+  targetCount: 10
+  conditionGroups:
+  - eventType: 0
+    requiredPlayerForm: 2
+    requirePawnBuffActive: 0
+    targetPieceType: 16
+    requireMultiKillInSingleAttack: 0
+    minKillCountInSingleAttack: 0
+    requirePlayerDamagedSimultaneously: 0
+    useStatCondition: 0
+    statType: 0
+    statCompare: 0
+    statValue: 0
+    useTurnEndMethodCondition: 0
+    turnEndMethod: 0
+    useRemainingTimeCondition: 0
+    remainingTimeCompare: 0
+    remainingTimeValue: 0
+    useBoardBlackCountCondition: 0
+    boardBlackCountCompare: 0
+    boardBlackCountValue: 0
+    useBoardClearedCondition: 0

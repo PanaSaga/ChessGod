@@ -109,6 +109,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float deathArcEndZ = -2f;
 
     private Vector2Int lastPlayerAttackerGrid;
+    private AchievementSO.TurnEndMethod lastTurnEndMethod;
+    private bool playerWasHitThisTurn;
 
     private SpawnManager spawnManager;
     private ControlManager controlManager;
@@ -156,7 +158,10 @@ public class GameManager : MonoBehaviour
         if (!isTutorialTimerFrozen) turnTimer -= Time.deltaTime;
         bool spaceEndsTurn = !isTutorialTurnEndBlocked && Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
         if (turnTimer <= 0f || spaceEndsTurn)
+        {
+            lastTurnEndMethod = spaceEndsTurn ? AchievementSO.TurnEndMethod.Spacebar : AchievementSO.TurnEndMethod.TimeOut;
             StartSettlement();
+        }
     }
 
     public void OnPlayerMoved(int x, int z)
@@ -231,7 +236,11 @@ public class GameManager : MonoBehaviour
         // show "turn just ended" dialogue before currentTurn actually increments, then advances
         // on its own via a call to AdvanceTurn() once the player is ready.
         EndSettlement();
-        if (!isTutorialActive) AdvanceTurn();
+        if (!isTutorialActive)
+        {
+            ReportMilestoneAchievements();
+            AdvanceTurn();
+        }
     }
 
     private void EndSettlement()
@@ -437,7 +446,8 @@ public class GameManager : MonoBehaviour
             .Where(enemy => ChessAttackResolver.GetAttackCells(enemy.pieceData, enemy.gridPos).Contains(playerPosition))
             .ToList();
 
-        if (attackers.Count == 0) yield break;
+        playerWasHitThisTurn = attackers.Count > 0;
+        if (!playerWasHitThisTurn) yield break;
 
         // Even if multiple enemies cover the player, damage is applied only once per turn.
         playerPiece.TakeDamage();
@@ -454,15 +464,28 @@ public class GameManager : MonoBehaviour
         Vector2Int playerPosition = controlManager.GetPlayerGridPosition();
         HashSet<Vector2Int> targets = ChessAttackResolver.GetAttackCells(playerPiece.CurrentAttackData, playerPosition);
 
+        // Damage is applied to every hit enemy up front so the total kill count for this single
+        // attack is known (needed for "kill N in one attack" achievements) before any of the
+        // per-enemy handling below runs.
+        List<(BlackEnemyPiece enemy, bool died)> hits = spawnManager.activePieces.OfType<BlackEnemyPiece>()
+            .ToArray()
+            .Where(enemy => targets.Contains(enemy.gridPos))
+            .Select(enemy => (enemy, died: enemy.TakeDamage(playerPiece.atk)))
+            .ToList();
+
+        int killCountThisAttack = hits.Count(hit => hit.died);
+        AchievementSO.PlayerFormFlags playerForm = ToPlayerFormFlag(playerPiece.CurrentAttackData.pieceType);
+        bool pawnBuffActive = playerPiece.isBuffActive;
+
         // Knockbacks must finish before the reposition phase starts, or both animations would
         // fight over the same piece's position (same bug class as the player-move/attack race).
         List<Coroutine> knockbacks = new();
 
-        foreach (BlackEnemyPiece enemy in spawnManager.activePieces.OfType<BlackEnemyPiece>().ToArray())
+        foreach ((BlackEnemyPiece enemy, bool died) in hits)
         {
-            if (!targets.Contains(enemy.gridPos)) continue;
+            ReportAttackAchievements(enemy.PieceType, died, killCountThisAttack, playerForm, pawnBuffActive);
 
-            if (!enemy.TakeDamage(playerPiece.atk))
+            if (!died)
             {
                 knockbacks.Add(StartCoroutine(AnimateKnockback(enemy.transform, enemy.gridPos, playerPosition, useLocalPosition: false, blackHitFlashColor)));
                 continue;
@@ -486,6 +509,70 @@ public class GameManager : MonoBehaviour
         foreach (Coroutine knockback in knockbacks)
             yield return knockback;
     }
+
+    private void ReportAttackAchievements(ChessPieceType targetType, bool killed, int killCountThisAttack, AchievementSO.PlayerFormFlags playerForm, bool pawnBuffActive)
+    {
+        if (isTutorialActive) return;
+        AchievementManager achievementManager = GlobalManager.Instance != null ? GlobalManager.Instance.AchievementManager : null;
+        if (achievementManager == null) return;
+
+        AchievementEventContext context = new()
+        {
+            playerForm = playerForm,
+            pawnBuffActive = pawnBuffActive,
+            targetPieceType = ToPieceTypeFlag(targetType),
+            killCountInThisAttack = killCountThisAttack,
+            playerDamagedSimultaneously = playerWasHitThisTurn
+        };
+
+        if (killed)
+        {
+            context.eventType = AchievementSO.EventType.Kill;
+            achievementManager.ReportEvent(context);
+        }
+
+        context.eventType = AchievementSO.EventType.DamageDealt;
+        achievementManager.ReportEvent(context);
+    }
+
+    private void ReportMilestoneAchievements()
+    {
+        AchievementManager achievementManager = GlobalManager.Instance != null ? GlobalManager.Instance.AchievementManager : null;
+        if (achievementManager == null) return;
+
+        achievementManager.ReportEvent(new AchievementEventContext
+        {
+            eventType = AchievementSO.EventType.Milestone,
+            stage = currentStage,
+            turn = currentTurn,
+            score = playerScore,
+            turnEndMethod = lastTurnEndMethod,
+            remainingTime = turnTimer,
+            boardBlackPieceCount = spawnManager.BlackPieceCount,
+            boardCleared = spawnManager.BlackPieceCount == 0
+        });
+    }
+
+    private static AchievementSO.PlayerFormFlags ToPlayerFormFlag(ChessPieceType type) => type switch
+    {
+        ChessPieceType.King => AchievementSO.PlayerFormFlags.King,
+        ChessPieceType.Knight => AchievementSO.PlayerFormFlags.Knight,
+        ChessPieceType.Bishop => AchievementSO.PlayerFormFlags.Bishop,
+        ChessPieceType.Rook => AchievementSO.PlayerFormFlags.Rook,
+        ChessPieceType.Queen => AchievementSO.PlayerFormFlags.Queen,
+        _ => 0
+    };
+
+    private static AchievementSO.PieceTypeFlags ToPieceTypeFlag(ChessPieceType type) => type switch
+    {
+        ChessPieceType.Pawn => AchievementSO.PieceTypeFlags.Pawn,
+        ChessPieceType.Knight => AchievementSO.PieceTypeFlags.Knight,
+        ChessPieceType.Bishop => AchievementSO.PieceTypeFlags.Bishop,
+        ChessPieceType.Rook => AchievementSO.PieceTypeFlags.Rook,
+        ChessPieceType.Queen => AchievementSO.PieceTypeFlags.Queen,
+        ChessPieceType.King => AchievementSO.PieceTypeFlags.King,
+        _ => 0
+    };
 
     // Among the enemies currently hitting the player, picks which one's position determines the
     // knockback direction: closest first, then the same "further down and further right" priority
