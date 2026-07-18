@@ -96,7 +96,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private Button skipButton;
 
     [Header("Scene transition")]
-    [SerializeField] private string nextSceneName = "MainLobby";
+    [SerializeField] private string nextSceneName = SceneNames.MainLobby;
 
     [Header("Safe zone overlay")]
     [Tooltip("Board_ChessW_Safe: shown on the exact tile the player needs to reach for a safe-zone checkpoint.")]
@@ -201,16 +201,29 @@ public class TutorialManager : MonoBehaviour
         foreach (ForcedPiece forced in step.forcedPieces)
             ApplyForcedPiece(forced);
 
-        if (step.action == TutorialStepAction.WaitForTurnEnd)
+        // These end on their own once their condition is met - no Next press needed (or possible),
+        // so the button is hidden and the player can act immediately instead of being paused.
+        bool isAutoWaitStep = step.action == TutorialStepAction.WaitForTurnEnd
+            || step.action == TutorialStepAction.WaitForBuffPickup
+            || step.action == TutorialStepAction.WaitForTransformPickup
+            || step.action == TutorialStepAction.WaitForSafeZoneArrival;
+
+        if (nextButton != null) nextButton.gameObject.SetActive(!isAutoWaitStep);
+        if (gameManager != null) gameManager.isTutorialPaused = !isAutoWaitStep;
+
+        switch (step.action)
         {
-            // Stays on screen while the player can still move/act, until the turn ends on its own -
-            // no Next press needed, so movement must not be paused for this one.
-            if (gameManager != null) gameManager.isTutorialPaused = false;
-            BeginWaitForTurnEnd();
-        }
-        else
-        {
-            if (gameManager != null) gameManager.isTutorialPaused = true;
+            case TutorialStepAction.WaitForTurnEnd:
+                BeginWaitForTurnEnd();
+                break;
+            case TutorialStepAction.WaitForBuffPickup:
+            case TutorialStepAction.WaitForTransformPickup:
+                pendingWait = step.action;
+                if (gameManager != null) gameManager.isTutorialTurnEndBlocked = true;
+                break;
+            case TutorialStepAction.WaitForSafeZoneArrival:
+                BeginSafeZoneCheckpoint(step.safeZonePosition);
+                break;
         }
     }
 
@@ -263,8 +276,8 @@ public class TutorialManager : MonoBehaviour
     private void OnNextPressed()
     {
         if (currentStepIndex < 0 || currentStepIndex >= steps.Count) return;
-        // Already auto-advancing on some condition (including the current step's own
-        // WaitForTurnEnd, which never leaves this state via Next) - ignore stray clicks/space.
+        // Auto-wait steps hide this button entirely and start their wait from ShowStep instead -
+        // this guard only remains as a safety net against a stray leftover space press.
         if (isWaitingForTurnSettlement || pendingWait != TutorialStepAction.None) return;
 
         TutorialStep step = steps[currentStepIndex];
@@ -274,20 +287,9 @@ public class TutorialManager : MonoBehaviour
 
         switch (step.action)
         {
-            case TutorialStepAction.WaitForSafeZoneArrival:
-                BeginSafeZoneCheckpoint(step.safeZonePosition);
-                return;
             case TutorialStepAction.AdvanceTurn:
                 gameManager?.AdvanceTurn();
                 break;
-            case TutorialStepAction.WaitForBuffPickup:
-            case TutorialStepAction.WaitForTransformPickup:
-                pendingWait = step.action;
-                // Set immediately (not left for next frame's Update) - otherwise the same
-                // key press that just dismissed this panel could reach GameManager's own
-                // space-ends-turn check first and start a settlement we don't want yet.
-                if (gameManager != null) gameManager.isTutorialTurnEndBlocked = true;
-                return;
             case TutorialStepAction.EndTutorial:
                 StartCoroutine(EndTutorial());
                 return;

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 // it flips the tutorial flag on before loading the InGame scene.
 public class TutorialLaunchButton : MonoBehaviour
 {
-    [SerializeField] private string ingameSceneName = "InGame";
+    [SerializeField] private string ingameSceneName = SceneNames.InGame;
     [SerializeField] private Button button;
 
     private void Start()

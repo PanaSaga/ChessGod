@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 7063581}
   - component: {fileID: 7063580}
   - component: {fileID: 7063579}
-  - component: {fileID: 7063578}
   m_Layer: 5
   m_Name: Btn_Continue
   m_TagString: Untagged
@@ -159,20 +158,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -270}
   m_SizeDelta: {x: 300, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &7063578
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7063576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b95ef54fd350329428f79890cdf54702, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneLoadButton
-  targetSceneName: MainLobby
-  button: {fileID: 0}
 --- !u!114 &7063579
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -966,15 +951,15 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91180526}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1.15527}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 464717823}
   - {fileID: 1793095143}
   - {fileID: 1431921518}
-  m_Father: {fileID: 362029596}
+  m_Father: {fileID: 276064271}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -2544,6 +2529,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 721068256}
+  - {fileID: 91180527}
   m_Father: {fileID: 994226142}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2762,6 +2748,7 @@ GameObject:
   - component: {fileID: 356232710}
   - component: {fileID: 356232709}
   - component: {fileID: 356232708}
+  - component: {fileID: 356232711}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -2830,6 +2817,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &356232711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 356232707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1511ccae7919cfc46b603b9b337fdc94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.BaseInput
 --- !u!1 &362029592
 GameObject:
   m_ObjectHideFlags: 0
@@ -2930,7 +2929,6 @@ RectTransform:
   - {fileID: 1382705971}
   - {fileID: 682925970}
   - {fileID: 390270936}
-  - {fileID: 91180527}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3071,6 +3069,8 @@ GameObject:
   - component: {fileID: 390270939}
   - component: {fileID: 390270938}
   - component: {fileID: 390270937}
+  - component: {fileID: 390270940}
+  - component: {fileID: 390270941}
   m_Layer: 5
   m_Name: Btn_Exit
   m_TagString: Untagged
@@ -3141,19 +3141,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 390270938}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1585710819}
-        m_TargetAssemblyTypeName: CommonUIManager, Assembly-CSharp
-        m_MethodName: QuitGame
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &390270938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3192,6 +3180,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 390270935}
   m_CullTransparentMesh: 1
+--- !u!114 &390270940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390270935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f6a94e61a11b44b84b32f50461a97d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideOnWebGL
+--- !u!114 &390270941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390270935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6f468a54e4cf224285a635097d4288b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuitGameButton
+  button: {fileID: 0}
 --- !u!1 &417450808
 GameObject:
   m_ObjectHideFlags: 0
@@ -4369,6 +4382,7 @@ GameObject:
   - component: {fileID: 682925973}
   - component: {fileID: 682925972}
   - component: {fileID: 682925971}
+  - component: {fileID: 682925974}
   m_Layer: 5
   m_Name: Btn_Setting
   m_TagString: Untagged
@@ -4439,19 +4453,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 682925972}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1585710819}
-        m_TargetAssemblyTypeName: CommonUIManager, Assembly-CSharp
-        m_MethodName: OpenSettings
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &682925972
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4490,6 +4492,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 682925969}
   m_CullTransparentMesh: 1
+--- !u!114 &682925974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 682925969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f033cc8f46238dd46b937319beda9978, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OpenSettingsButton
+  button: {fileID: 0}
 --- !u!1 &702862058
 GameObject:
   m_ObjectHideFlags: 0
@@ -4643,9 +4658,9 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 721068255}
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 1.1999989}
-  m_LocalScale: {x: 0.010691671, y: 0.01069167, z: 0.01069167}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1198385649}
@@ -4656,7 +4671,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -960, y: -540}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 600, y: 420}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &721068257
@@ -4716,8 +4731,8 @@ MonoBehaviour:
   - {fileID: 1491306833}
   - {fileID: 152600175}
   confirmDialog: {fileID: 91180528}
-  ingameSceneName: InGame
-  mainLobbySceneName: MainLobby
+  ingameSceneName: 02_InGame
+  mainLobbySceneName: 01_MainLobby
 --- !u!1 &738560430
 GameObject:
   m_ObjectHideFlags: 0
@@ -6638,8 +6653,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18ab0975004726a43a55018373e37470, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AchievementUIManager
-  mainLobbySceneName: MainLobby
-  inGameSceneName: InGame
+  mainLobbySceneName: 01_MainLobby
+  inGameSceneName: 02_InGame
   toast: {fileID: 2093102684}
   listPanel: {fileID: 221591906}
   lobbyListPosition: {x: -700, y: -150}
@@ -9206,8 +9221,7 @@ MonoBehaviour:
   newGameButton: {fileID: 1593522053}
   continueButton: {fileID: 7063579}
   loadButton: {fileID: 1382705972}
-  slotPickerPopup: {fileID: 721068259}
-  mainLobbySceneName: MainLobby
+  mainLobbySceneName: 01_MainLobby
 --- !u!4 &1325398497
 Transform:
   m_ObjectHideFlags: 0
@@ -10945,11 +10959,11 @@ MonoBehaviour:
   sfxMuteToggle: {fileID: 2051578437}
   backToTitleButtonRoot: {fileID: 829259375}
   backToTitleConfirmDialog: {fileID: 933241866}
-  gameStartSceneName: GameStart
+  gameStartSceneName: 00_GameStart
   helpPanel: {fileID: 1014332259}
   giveUpButton: {fileID: 738560433}
   confirmDialog: {fileID: 2073090441}
-  mainLobbySceneName: MainLobby
+  mainLobbySceneName: 01_MainLobby
 --- !u!1 &1593522050
 GameObject:
   m_ObjectHideFlags: 0
@@ -12189,6 +12203,7 @@ GameObject:
   - component: {fileID: 1736741843}
   - component: {fileID: 1736741842}
   - component: {fileID: 1736741841}
+  - component: {fileID: 1736741844}
   m_Layer: 5
   m_Name: Btn_Exit
   m_TagString: Untagged
@@ -12310,6 +12325,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1736741839}
   m_CullTransparentMesh: 1
+--- !u!114 &1736741844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1736741839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f6a94e61a11b44b84b32f50461a97d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideOnWebGL
 --- !u!1 &1740910170
 GameObject:
   m_ObjectHideFlags: 0

@@ -42,6 +42,6 @@ public class GlobalManager : MonoBehaviour
     private void DebugLaunchTutorial()
     {
         LaunchTutorialOnNextIngame = true;
-        SceneManager.LoadScene("InGame");
+        SceneManager.LoadScene(SceneNames.InGame);
     }
 }

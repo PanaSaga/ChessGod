@@ -18,7 +18,7 @@ public class CommonUIManager : MonoBehaviour
     [Header("Back to title (hidden during an active ingame session - use Give Up for that instead)")]
     [SerializeField] private GameObject backToTitleButtonRoot;
     [SerializeField] private ConfirmDialog backToTitleConfirmDialog;
-    [SerializeField] private string gameStartSceneName = "GameStart";
+    [SerializeField] private string gameStartSceneName = SceneNames.GameStart;
 
     [Header("Help")]
     [SerializeField] private HelpPanel helpPanel;
@@ -26,7 +26,7 @@ public class CommonUIManager : MonoBehaviour
     [Header("Give up (ingame only)")]
     [SerializeField] private Button giveUpButton;
     [SerializeField] private ConfirmDialog confirmDialog;
-    [SerializeField] private string mainLobbySceneName = "MainLobby";
+    [SerializeField] private string mainLobbySceneName = SceneNames.MainLobby;
 
     private bool isSettingsOpen;
 

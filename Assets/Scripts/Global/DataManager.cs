@@ -62,6 +62,7 @@ public class DataManager : MonoBehaviour
     {
         if (currentSlotIndex < 0 || currentSlot == null) return;
         File.WriteAllText(GetSlotFilePath(currentSlotIndex), JsonUtility.ToJson(currentSlot));
+        WebGLStorageSync.Sync();
     }
 
     private string GetSlotFilePath(int slotIndex) => Path.Combine(Application.persistentDataPath, $"save_slot_{slotIndex}.json");
@@ -144,6 +145,7 @@ public class DataManager : MonoBehaviour
     public void SaveGlobalSettings()
     {
         File.WriteAllText(GetGlobalSettingsFilePath(), JsonUtility.ToJson(GlobalSettings));
+        WebGLStorageSync.Sync();
     }
 
     private string GetGlobalSettingsFilePath() => Path.Combine(Application.persistentDataPath, "settings.json");

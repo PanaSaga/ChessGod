@@ -2,15 +2,19 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// Wires the title screen's New Game / Continue / Load buttons. Settings and Exit need no script of
-// their own - point their OnClick directly at CommonUIManager.OpenSettings() / QuitGame() in the Inspector.
+// Wires the title screen's New Game / Continue / Load buttons.
 public class StartScreenManager : MonoBehaviour
 {
     [SerializeField] private Button newGameButton;
     [SerializeField] private Button continueButton;
     [SerializeField] private Button loadButton;
-    [SerializeField] private SaveSlotPickerPopup slotPickerPopup;
-    [SerializeField] private string mainLobbySceneName = "MainLobby";
+    [SerializeField] private string mainLobbySceneName = SceneNames.MainLobby;
+
+    // Looked up through GlobalManager.Instance at call time rather than held as a direct
+    // [SerializeField] reference - a direct reference into GlobalManager's own hierarchy from
+    // another object in the same (GameStart) scene goes null the moment GlobalManager's
+    // DontDestroyOnLoad kicks in, since that happens in this same scene.
+    private SaveSlotPickerPopup SlotPickerPopup => GlobalManager.Instance.SaveSlotPickerPopup;
 
     private void Start()
     {
@@ -30,9 +34,9 @@ public class StartScreenManager : MonoBehaviour
         continueButton.interactable = lastSlot >= 0 && data.HasSaveData(lastSlot);
     }
 
-    private void OnNewGamePressed() => slotPickerPopup?.OpenForNewGame();
+    private void OnNewGamePressed() => SlotPickerPopup?.OpenForNewGame();
 
-    private void OnLoadPressed() => slotPickerPopup?.OpenForLoad();
+    private void OnLoadPressed() => SlotPickerPopup?.OpenForLoad();
 
     private void OnContinuePressed()
     {

@@ -9,19 +9,19 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
-    path: Assets/Scenes/GameStart.unity
+    path: Assets/Scenes/00_GameStart.unity
     guid: 6228f5286e9e83a47a690a7894076c71
   - enabled: 1
-    path: Assets/Scenes/MainLobby.unity
+    path: Assets/Scenes/01_MainLobby.unity
     guid: d86c1668b7829c842a01aa619484d7b4
   - enabled: 1
-    path: Assets/Scenes/InGame.unity
+    path: Assets/Scenes/02_InGame.unity
     guid: a16c5e669dfd7b14c897618da1d2b17a
   - enabled: 0
     path: Assets/Scenes/GameOver.unity
     guid: deb0f1791a7c01746ae28e8ab5f7d8a8
   - enabled: 0
-    path: Assets/Scenes/Story.unity
+    path: Assets/Scenes/03_Story.unity
     guid: 75ba7520b0a3ccc4fafa304c5cd37d04
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

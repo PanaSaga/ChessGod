@@ -509,7 +509,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95ef54fd350329428f79890cdf54702, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneLoadButton
-  targetSceneName: InGame
+  targetSceneName: 02_InGame
   button: {fileID: 0}
 --- !u!1 &420803414
 GameObject:
@@ -1053,7 +1053,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61f4f1014942f31418f9ac535924dabb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialLaunchButton
-  ingameSceneName: InGame
+  ingameSceneName: 02_InGame
   button: {fileID: 0}
 --- !u!114 &914818404
 MonoBehaviour:

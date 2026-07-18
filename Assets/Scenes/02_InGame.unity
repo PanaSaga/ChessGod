@@ -766,7 +766,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: MainLobby
+  m_text: "\uB3CC\uC544\uAC00\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bfe453660aa0e2d4888e53e2965bd5d4, type: 2}
   m_sharedMaterial: {fileID: 8480491403543754819, guid: bfe453660aa0e2d4888e53e2965bd5d4, type: 2}
@@ -3797,7 +3797,7 @@ MonoBehaviour:
   dialogueText: {fileID: 1024617505}
   nextButton: {fileID: 1594398413}
   skipButton: {fileID: 850429621}
-  nextSceneName: MainLobby
+  nextSceneName: 01_MainLobby
   safeZoneSprite: {fileID: 21300000, guid: 4fc823d6f07c5d6418d6bacce5b4587b, type: 3}
 --- !u!1 &454445396
 GameObject:
@@ -5002,7 +5002,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ReStart
+  m_text: "\uCC98\uC74C\uBD80\uD130"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bfe453660aa0e2d4888e53e2965bd5d4, type: 2}
   m_sharedMaterial: {fileID: 8480491403543754819, guid: bfe453660aa0e2d4888e53e2965bd5d4, type: 2}
@@ -5440,7 +5440,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95ef54fd350329428f79890cdf54702, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneLoadButton
-  targetSceneName: MainLobby
+  targetSceneName: 01_MainLobby
   button: {fileID: 0}
 --- !u!1 &585905106
 GameObject:
@@ -12350,7 +12350,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -385}
+  m_AnchoredPosition: {x: 0, y: -360}
   m_SizeDelta: {x: 300, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1428960041
@@ -12447,7 +12447,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95ef54fd350329428f79890cdf54702, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneLoadButton
-  targetSceneName: InGame
+  targetSceneName: 02_InGame
   button: {fileID: 0}
 --- !u!1 &1438658348
 GameObject:

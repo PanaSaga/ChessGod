@@ -23,8 +23,8 @@ public class SaveSlotPickerPopup : MonoBehaviour
     [SerializeField] private ConfirmDialog confirmDialog;
 
     [Header("Scenes")]
-    [SerializeField] private string ingameSceneName = "InGame";
-    [SerializeField] private string mainLobbySceneName = "MainLobby";
+    [SerializeField] private string ingameSceneName = SceneNames.InGame;
+    [SerializeField] private string mainLobbySceneName = SceneNames.MainLobby;
 
     private Mode mode;
 

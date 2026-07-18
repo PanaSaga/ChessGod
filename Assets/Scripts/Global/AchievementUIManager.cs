@@ -5,8 +5,8 @@ using UnityEngine.SceneManagement;
 public class AchievementUIManager : MonoBehaviour
 {
     [Header("Scenes")]
-    [SerializeField] private string mainLobbySceneName = "MainLobby";
-    [SerializeField] private string inGameSceneName = "InGame";
+    [SerializeField] private string mainLobbySceneName = SceneNames.MainLobby;
+    [SerializeField] private string inGameSceneName = SceneNames.InGame;
 
     [Header("UI")]
     [SerializeField] private AchievementToast toast;

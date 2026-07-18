@@ -37,8 +37,6 @@ public class AchievementManager : MonoBehaviour
 
     private DataManager Data => GlobalManager.Instance.DataManager;
 
-    public AchievementSO GetDefinition(string achievementId) => Array.Find(achievements, a => a.achievementId == achievementId);
-
     public int GetProgress(string achievementId) => Data.GetAchievementProgress(achievementId);
 
     public bool IsUnlocked(string achievementId) => Data.IsAchievementUnlocked(achievementId);
