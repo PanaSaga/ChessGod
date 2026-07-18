@@ -18,6 +18,10 @@ public class AchievementUIManager : MonoBehaviour
     [Tooltip("Anchored Position to place the list panel at while in the InGame scene.")]
     [SerializeField] private Vector2 inGameListPosition = new(600f, -250f);
 
+    [Header("List panel scale per scene")]
+    [SerializeField] private float lobbyListScale = 1f;
+    [SerializeField] private float inGameListScale = 0.8f;
+
     private readonly Queue<AchievementSO> toastQueue = new();
     private bool isShowingToast;
     private bool isInGameScene;
@@ -71,11 +75,13 @@ public class AchievementUIManager : MonoBehaviour
         {
             listPanel.ShowAlwaysOpen(AchievementListPanel.Tab.Unachieved);
             listPanel.SetAnchoredPosition(inGameListPosition);
+            listPanel.SetScale(inGameListScale);
         }
         else if (sceneName == mainLobbySceneName)
         {
             listPanel.ShowAlwaysOpen(AchievementListPanel.Tab.All);
             listPanel.SetAnchoredPosition(lobbyListPosition);
+            listPanel.SetScale(lobbyListScale);
         }
         else
         {

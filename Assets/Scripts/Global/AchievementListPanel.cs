@@ -115,6 +115,15 @@ public class AchievementListPanel : MonoBehaviour
         if (panelRoot != null) panelRoot.SetActive(visible);
     }
 
+    // Lets AchievementUIManager shrink/grow the panel per scene (e.g. smaller in InGame so it
+    // doesn't crowd the board).
+    public void SetScale(float scale)
+    {
+        if (panelRoot == null) return;
+        RectTransform rectTransform = panelRoot.GetComponent<RectTransform>();
+        if (rectTransform != null) rectTransform.localScale = new Vector3(scale, scale, 1f);
+    }
+
     // Called by AchievementUIManager whenever an achievement unlocks, so an already-open panel updates live.
     public void Refresh() => SelectTab(currentTab);
 
