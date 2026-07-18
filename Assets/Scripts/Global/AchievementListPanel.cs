@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +33,6 @@ public class AchievementListPanel : MonoBehaviour
 
     private AchievementManager achievementManager;
     private Tab currentTab = Tab.All;
-    private bool unachievedOnly;
 
     private void Start()
     {
@@ -47,21 +48,20 @@ public class AchievementListPanel : MonoBehaviour
         achievementManager = manager;
     }
 
-    // Lobby/InGame: the panel is always visible, with no close button.
-    public void ShowAlwaysOpen(bool unachievedOnly)
+    // Lobby/InGame: the panel is always visible, with no close button. All three tabs stay
+    // clickable - initialTab only decides which one is selected the moment the scene loads.
+    public void ShowAlwaysOpen(Tab initialTab)
     {
-        this.unachievedOnly = unachievedOnly;
         if (panelRoot != null) panelRoot.SetActive(true);
         if (closeButton != null) closeButton.gameObject.SetActive(false);
-        if (allTabButton != null) allTabButton.gameObject.SetActive(!unachievedOnly);
-        if (achievedTabButton != null) achievedTabButton.gameObject.SetActive(!unachievedOnly);
-        SelectTab(unachievedOnly ? Tab.Unachieved : Tab.All);
+        if (allTabButton != null) allTabButton.gameObject.SetActive(true);
+        if (achievedTabButton != null) achievedTabButton.gameObject.SetActive(true);
+        SelectTab(initialTab);
     }
 
     // Other scenes (e.g. Gallery): stays hidden until a scene button calls Open().
     public void ShowToggleable()
     {
-        unachievedOnly = false;
         if (panelRoot != null) panelRoot.SetActive(false);
         if (closeButton != null) closeButton.gameObject.SetActive(true);
         if (allTabButton != null) allTabButton.gameObject.SetActive(true);
@@ -79,12 +79,21 @@ public class AchievementListPanel : MonoBehaviour
         if (panelRoot != null) panelRoot.SetActive(false);
     }
 
+    // Lets AchievementUIManager move the panel to a different screen corner per scene
+    // (e.g. bottom-left in the Lobby, bottom-right in InGame).
+    public void SetAnchoredPosition(Vector2 anchoredPosition)
+    {
+        if (panelRoot == null) return;
+        RectTransform rectTransform = panelRoot.GetComponent<RectTransform>();
+        if (rectTransform != null) rectTransform.anchoredPosition = anchoredPosition;
+    }
+
     // Called by AchievementUIManager whenever an achievement unlocks, so an already-open panel updates live.
     public void Refresh() => SelectTab(currentTab);
 
     private void SelectTab(Tab tab)
     {
-        currentTab = unachievedOnly ? Tab.Unachieved : tab;
+        currentTab = tab;
         BuildList();
     }
 
@@ -94,7 +103,11 @@ public class AchievementListPanel : MonoBehaviour
 
         foreach (Transform child in listParent) Destroy(child.gameObject);
 
-        foreach (AchievementSO achievement in achievementManager.Achievements)
+        // Achieved ones sink to the bottom (most relevant within the "All" tab, where both mix).
+        IEnumerable<AchievementSO> orderedAchievements = achievementManager.Achievements
+            .OrderBy(a => achievementManager.IsUnlocked(a.achievementId));
+
+        foreach (AchievementSO achievement in orderedAchievements)
         {
             bool achieved = achievementManager.IsUnlocked(achievement.achievementId);
             if (currentTab == Tab.Achieved && !achieved) continue;

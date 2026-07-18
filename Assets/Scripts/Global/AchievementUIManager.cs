@@ -12,6 +12,12 @@ public class AchievementUIManager : MonoBehaviour
     [SerializeField] private AchievementToast toast;
     [SerializeField] private AchievementListPanel listPanel;
 
+    [Header("List panel position per scene")]
+    [Tooltip("Anchored Position to place the list panel at while in the Lobby scene.")]
+    [SerializeField] private Vector2 lobbyListPosition = new(-600f, -250f);
+    [Tooltip("Anchored Position to place the list panel at while in the InGame scene.")]
+    [SerializeField] private Vector2 inGameListPosition = new(600f, -250f);
+
     private readonly Queue<AchievementSO> toastQueue = new();
     private bool isShowingToast;
     private AchievementManager achievementManager;
@@ -45,9 +51,20 @@ public class AchievementUIManager : MonoBehaviour
     {
         if (listPanel == null) return;
 
-        if (sceneName == inGameSceneName) listPanel.ShowAlwaysOpen(unachievedOnly: true);
-        else if (sceneName == mainLobbySceneName) listPanel.ShowAlwaysOpen(unachievedOnly: false);
-        else listPanel.ShowToggleable();
+        if (sceneName == inGameSceneName)
+        {
+            listPanel.ShowAlwaysOpen(AchievementListPanel.Tab.Unachieved);
+            listPanel.SetAnchoredPosition(inGameListPosition);
+        }
+        else if (sceneName == mainLobbySceneName)
+        {
+            listPanel.ShowAlwaysOpen(AchievementListPanel.Tab.All);
+            listPanel.SetAnchoredPosition(lobbyListPosition);
+        }
+        else
+        {
+            listPanel.ShowToggleable();
+        }
     }
 
     private void OnAchievementUnlocked(AchievementSO achievement)

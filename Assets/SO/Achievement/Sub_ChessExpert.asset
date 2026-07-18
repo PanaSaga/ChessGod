@@ -15,7 +15,7 @@ MonoBehaviour:
   achievementId: S_ChessExpert
   displayName: "\uCCB4\uC2A4\uC804\uBB38\uAC00"
   description: "\uC810\uC218 2000\uC810 \uC774\uC0C1 \uB2EC\uC131"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 32800340982ce66468ef6f51bd0f858d, type: 3}
   isSecret: 0
   targetCount: 1
   conditionGroups:
