@@ -22,15 +22,23 @@ public class DataManager : MonoBehaviour
 
     public bool HasSaveData(int slotIndex) => File.Exists(GetSlotFilePath(slotIndex));
 
+    // Reads a slot from disk without making it the active slot - for preview UI (start screen slot list).
+    public SaveSlotData PeekSlot(int slotIndex)
+    {
+        string path = GetSlotFilePath(slotIndex);
+        return File.Exists(path) ? JsonUtility.FromJson<SaveSlotData>(File.ReadAllText(path)) : null;
+    }
+
     // Wipes the given slot to a fresh profile and makes it the active slot. Used by "새로 시작하기".
     public void CreateNewSlot(int slotIndex)
     {
         currentSlotIndex = slotIndex;
         currentSlot = new SaveSlotData();
         SaveCurrentSlot();
+        RememberLastUsedSlot(slotIndex);
     }
 
-    // Reads the given slot from disk and makes it the active slot. Used by "불러오기".
+    // Reads the given slot from disk and makes it the active slot. Used by "이어하기"/"불러오기".
     public bool LoadSlot(int slotIndex)
     {
         string path = GetSlotFilePath(slotIndex);
@@ -38,7 +46,14 @@ public class DataManager : MonoBehaviour
 
         currentSlot = JsonUtility.FromJson<SaveSlotData>(File.ReadAllText(path));
         currentSlotIndex = slotIndex;
+        RememberLastUsedSlot(slotIndex);
         return true;
+    }
+
+    private void RememberLastUsedSlot(int slotIndex)
+    {
+        GlobalSettings.lastUsedSlotIndex = slotIndex;
+        SaveGlobalSettings();
     }
 
     // Writes the active slot's current state to disk. Called manually (pause popup) and

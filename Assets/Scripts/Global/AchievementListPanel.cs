@@ -34,6 +34,11 @@ public class AchievementListPanel : MonoBehaviour
     private AchievementManager achievementManager;
     private Tab currentTab = Tab.All;
 
+    // One entry per achievement, created once up front and only ever shown/hidden/reordered after
+    // that - repeatedly Destroy-ing and Instantiate-ing rows here was tripping a Unity engine
+    // assertion once scene transitions were involved.
+    private readonly Dictionary<string, AchievementListEntry> pooledEntries = new();
+
     private void Start()
     {
         if (allTabButton != null) allTabButton.onClick.AddListener(() => SelectTab(Tab.All));
@@ -42,10 +47,25 @@ public class AchievementListPanel : MonoBehaviour
         if (closeButton != null) closeButton.onClick.AddListener(Close);
     }
 
-    // Called once by AchievementUIManager once GlobalManager's sub-managers exist.
+    // Called once by AchievementUIManager once GlobalManager's sub-managers exist (in the GameStart
+    // scene, before any scene transition happens) - this is where the one-time pool gets built.
     public void Initialize(AchievementManager manager)
     {
         achievementManager = manager;
+        BuildPool();
+    }
+
+    private void BuildPool()
+    {
+        if (listParent == null || entryPrefab == null || achievementManager == null) return;
+
+        foreach (AchievementSO achievement in achievementManager.Achievements)
+        {
+            if (pooledEntries.ContainsKey(achievement.achievementId)) continue;
+            AchievementListEntry entry = Instantiate(entryPrefab, listParent);
+            entry.gameObject.SetActive(false);
+            pooledEntries[achievement.achievementId] = entry;
+        }
     }
 
     // Lobby/InGame: the panel is always visible, with no close button. All three tabs stay
@@ -88,35 +108,54 @@ public class AchievementListPanel : MonoBehaviour
         if (rectTransform != null) rectTransform.anchoredPosition = anchoredPosition;
     }
 
+    // Lets AchievementUIManager hide the always-open panel during the tutorial without losing
+    // its "always open" mode - ShowAlwaysOpen doesn't need to be called again once it ends.
+    public void SetVisible(bool visible)
+    {
+        if (panelRoot != null) panelRoot.SetActive(visible);
+    }
+
     // Called by AchievementUIManager whenever an achievement unlocks, so an already-open panel updates live.
     public void Refresh() => SelectTab(currentTab);
+
+    // Cheap path for a progress tick that doesn't unlock anything: just updates the row's text,
+    // no visibility/ordering changes.
+    public void UpdateProgress(string achievementId, int progress, int targetCount)
+    {
+        if (pooledEntries.TryGetValue(achievementId, out AchievementListEntry entry) && entry != null)
+            entry.SetProgress(progress, targetCount);
+    }
 
     private void SelectTab(Tab tab)
     {
         currentTab = tab;
-        BuildList();
+        RefreshVisibleEntries();
     }
 
-    private void BuildList()
+    private void RefreshVisibleEntries()
     {
-        if (listParent == null || entryPrefab == null || achievementManager == null) return;
-
-        foreach (Transform child in listParent) Destroy(child.gameObject);
+        if (achievementManager == null) return;
 
         // Achieved ones sink to the bottom (most relevant within the "All" tab, where both mix).
         IEnumerable<AchievementSO> orderedAchievements = achievementManager.Achievements
             .OrderBy(a => achievementManager.IsUnlocked(a.achievementId));
 
+        int siblingIndex = 0;
         foreach (AchievementSO achievement in orderedAchievements)
         {
+            if (!pooledEntries.TryGetValue(achievement.achievementId, out AchievementListEntry entry) || entry == null) continue;
+
             bool achieved = achievementManager.IsUnlocked(achievement.achievementId);
-            if (currentTab == Tab.Achieved && !achieved) continue;
-            if (currentTab == Tab.Unachieved && achieved) continue;
+            bool matchesTab = currentTab == Tab.All || (currentTab == Tab.Achieved ? achieved : !achieved);
+
+            entry.gameObject.SetActive(matchesTab);
+            if (!matchesTab) continue;
+
+            entry.transform.SetSiblingIndex(siblingIndex++);
 
             bool hideDetails = achievement.isSecret && !achieved;
             bool showClaim = achieved && !achievementManager.IsAcknowledged(achievement.achievementId);
 
-            AchievementListEntry entry = Instantiate(entryPrefab, listParent);
             entry.Setup(achievement,
                 hideDetails ? secretDisplayName : null,
                 hideDetails ? secretDescription : null,

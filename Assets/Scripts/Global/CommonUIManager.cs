@@ -15,8 +15,10 @@ public class CommonUIManager : MonoBehaviour
     [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private Toggle sfxMuteToggle;
 
-    [Header("Save")]
-    [SerializeField] private Button saveButton;
+    [Header("Back to title (hidden during an active ingame session - use Give Up for that instead)")]
+    [SerializeField] private GameObject backToTitleButtonRoot;
+    [SerializeField] private ConfirmDialog backToTitleConfirmDialog;
+    [SerializeField] private string gameStartSceneName = "GameStart";
 
     [Header("Help")]
     [SerializeField] private HelpPanel helpPanel;
@@ -31,7 +33,6 @@ public class CommonUIManager : MonoBehaviour
     private void Start()
     {
         if (closeSettingsButton != null) closeSettingsButton.onClick.AddListener(CloseSettings);
-        if (saveButton != null) saveButton.onClick.AddListener(OnSavePressed);
         if (giveUpButton != null) giveUpButton.onClick.AddListener(OnGiveUpPressed);
 
         if (bgmVolumeSlider != null) bgmVolumeSlider.onValueChanged.AddListener(OnBgmVolumeChanged);
@@ -46,10 +47,16 @@ public class CommonUIManager : MonoBehaviour
     {
         if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
 
-        // Closes on top of the stack first: the give-up confirm, then help, then settings underneath.
+        // Closes on top of the stack first: whichever confirm dialog is up, then help, then settings underneath.
         if (confirmDialog != null && confirmDialog.IsOpen)
         {
             confirmDialog.Cancel();
+            return;
+        }
+
+        if (backToTitleConfirmDialog != null && backToTitleConfirmDialog.IsOpen)
+        {
+            backToTitleConfirmDialog.Cancel();
             return;
         }
 
@@ -70,8 +77,10 @@ public class CommonUIManager : MonoBehaviour
         isSettingsOpen = true;
         if (settingsPanelRoot != null) settingsPanelRoot.SetActive(true);
         RefreshVolumeControls();
-        // Only a live ingame session has anything to give up on.
+        // Only a live ingame session has anything to give up on - and only outside one does
+        // "back to title" make sense as a plain exit (ingame uses the confirm-gated Give Up instead).
         if (giveUpButton != null) giveUpButton.gameObject.SetActive(GameManager.Instance != null);
+        if (backToTitleButtonRoot != null) backToTitleButtonRoot.SetActive(GameManager.Instance == null);
         if (GameManager.Instance != null) GameManager.Instance.isPaused = true;
     }
 
@@ -99,7 +108,15 @@ public class CommonUIManager : MonoBehaviour
     private void OnSfxVolumeChanged(float value) => GlobalManager.Instance.SoundManager.SetSfxVolume(value);
     private void OnSfxMuteChanged(bool isMuted) => GlobalManager.Instance.SoundManager.SetSfxMuted(isMuted);
 
-    private void OnSavePressed() => GlobalManager.Instance.DataManager.SaveCurrentSlot();
+    // Any scene's own exit button (start screen, settings panel) can call this directly.
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
 
     private void OnGiveUpPressed()
     {
@@ -111,5 +128,18 @@ public class CommonUIManager : MonoBehaviour
     {
         CloseSettings();
         SceneManager.LoadScene(mainLobbySceneName);
+    }
+
+    // Any scene's own "타이틀로 돌아가기" button can call this directly (it's not gated by
+    // isSettingsOpen, so it also works from a button that isn't inside the settings panel, like the lobby's).
+    public void ConfirmBackToTitle()
+    {
+        backToTitleConfirmDialog?.Show(GoToTitle);
+    }
+
+    private void GoToTitle()
+    {
+        CloseSettings();
+        SceneManager.LoadScene(gameStartSceneName);
     }
 }

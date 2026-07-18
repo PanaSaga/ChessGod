@@ -11,12 +11,14 @@ public class GlobalManager : MonoBehaviour
     [SerializeField] private CommonUIManager commonUIManager;
     [SerializeField] private AchievementManager achievementManager;
     [SerializeField] private AchievementUIManager achievementUIManager;
+    [SerializeField] private SaveSlotPickerPopup saveSlotPickerPopup;
 
     public DataManager DataManager => dataManager;
     public SoundManager SoundManager => soundManager;
     public CommonUIManager CommonUIManager => commonUIManager;
     public AchievementManager AchievementManager => achievementManager;
     public AchievementUIManager AchievementUIManager => achievementUIManager;
+    public SaveSlotPickerPopup SaveSlotPickerPopup => saveSlotPickerPopup;
 
     // Set right before loading the InGame scene to control which mode it starts in.
     // TutorialManager reads and immediately resets this the moment it wakes up.

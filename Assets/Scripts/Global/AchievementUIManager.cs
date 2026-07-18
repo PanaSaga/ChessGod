@@ -20,6 +20,7 @@ public class AchievementUIManager : MonoBehaviour
 
     private readonly Queue<AchievementSO> toastQueue = new();
     private bool isShowingToast;
+    private bool isInGameScene;
     private AchievementManager achievementManager;
 
     private void Start()
@@ -33,6 +34,7 @@ public class AchievementUIManager : MonoBehaviour
 
         achievementManager = GlobalManager.Instance.AchievementManager;
         achievementManager.OnAchievementUnlocked += OnAchievementUnlocked;
+        achievementManager.OnAchievementProgressChanged += OnAchievementProgressChanged;
         if (listPanel != null) listPanel.Initialize(achievementManager);
 
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -41,17 +43,31 @@ public class AchievementUIManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (achievementManager != null) achievementManager.OnAchievementUnlocked -= OnAchievementUnlocked;
+        if (achievementManager != null)
+        {
+            achievementManager.OnAchievementUnlocked -= OnAchievementUnlocked;
+            achievementManager.OnAchievementProgressChanged -= OnAchievementProgressChanged;
+        }
         SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    // The tutorial runs inside the InGame scene itself (no separate scene load), so hiding the
+    // panel for it can't be driven by ApplySceneMode - it has to be polled every frame instead.
+    private void Update()
+    {
+        if (!isInGameScene || listPanel == null) return;
+        bool tutorialActive = GameManager.Instance != null && GameManager.Instance.isTutorialActive;
+        listPanel.SetVisible(!tutorialActive);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode) => ApplySceneMode(scene.name);
 
     private void ApplySceneMode(string sceneName)
     {
+        isInGameScene = sceneName == inGameSceneName;
         if (listPanel == null) return;
 
-        if (sceneName == inGameSceneName)
+        if (isInGameScene)
         {
             listPanel.ShowAlwaysOpen(AchievementListPanel.Tab.Unachieved);
             listPanel.SetAnchoredPosition(inGameListPosition);
@@ -72,6 +88,12 @@ public class AchievementUIManager : MonoBehaviour
         toastQueue.Enqueue(achievement);
         if (listPanel != null) listPanel.Refresh();
         if (!isShowingToast) ShowNextToast();
+    }
+
+    private void OnAchievementProgressChanged(AchievementSO achievement)
+    {
+        if (listPanel == null) return;
+        listPanel.UpdateProgress(achievement.achievementId, achievementManager.GetProgress(achievement.achievementId), achievement.targetCount);
     }
 
     private void ShowNextToast()

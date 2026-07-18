@@ -16,7 +16,12 @@ public class AchievementListEntry : MonoBehaviour
     public void Setup(AchievementSO achievement, string displayNameOverride, string descriptionOverride, Sprite iconOverride,
         bool achieved, int progress, bool showClaim, Action onClaim)
     {
-        if (icon != null) icon.sprite = iconOverride != null ? iconOverride : achievement.icon;
+        if (icon != null)
+        {
+            icon.sprite = iconOverride != null ? iconOverride : achievement.icon;
+            // Unachieved (or still-secret) icons read as a black silhouette; achieving it reveals its real colors.
+            icon.color = achieved ? Color.white : Color.black;
+        }
         if (nameText != null) nameText.text = displayNameOverride ?? achievement.displayName;
         if (descriptionText != null) descriptionText.text = descriptionOverride ?? achievement.description;
         if (progressText != null) progressText.text = achieved ? string.Empty : $"{progress}/{achievement.targetCount}";
@@ -26,5 +31,11 @@ public class AchievementListEntry : MonoBehaviour
         claimButton.gameObject.SetActive(showClaim);
         claimButton.onClick.RemoveAllListeners();
         if (showClaim) claimButton.onClick.AddListener(() => onClaim?.Invoke());
+    }
+
+    // Cheap in-place update for progress ticks - no icon/name/description/claim-button churn.
+    public void SetProgress(int progress, int targetCount)
+    {
+        if (progressText != null) progressText.text = $"{progress}/{targetCount}";
     }
 }

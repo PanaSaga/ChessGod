@@ -30,6 +30,8 @@ public class AchievementManager : MonoBehaviour
     [SerializeField] private AchievementSO[] achievements;
 
     public event Action<AchievementSO> OnAchievementUnlocked;
+    // Fires on every progress tick (even ones that don't reach the target yet), so a live UI can refresh.
+    public event Action<AchievementSO> OnAchievementProgressChanged;
 
     public IReadOnlyList<AchievementSO> Achievements => achievements;
 
@@ -54,6 +56,7 @@ public class AchievementManager : MonoBehaviour
 
             int progress = GetProgress(achievement.achievementId) + 1;
             Data.SetAchievementProgress(achievement.achievementId, progress);
+            OnAchievementProgressChanged?.Invoke(achievement);
 
             if (progress >= achievement.targetCount)
             {

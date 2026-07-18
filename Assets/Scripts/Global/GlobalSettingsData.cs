@@ -8,4 +8,7 @@ public class GlobalSettingsData
     public bool isBgmMuted;
     public float sfxVolume = 1f;
     public bool isSfxMuted;
+
+    // -1 means no slot has ever been created/loaded yet (used by the start screen's "이어하기" button).
+    public int lastUsedSlotIndex = -1;
 }
