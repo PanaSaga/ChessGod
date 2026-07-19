@@ -108,6 +108,19 @@ public class CommonUIManager : MonoBehaviour
     private void OnSfxVolumeChanged(float value) => GlobalManager.Instance.SoundManager.SetSfxVolume(value);
     private void OnSfxMuteChanged(bool isMuted) => GlobalManager.Instance.SoundManager.SetSfxMuted(isMuted);
 
+    // Put a ResolutionOptionButton on each resolution choice button in the settings panel -
+    // this just needs to exist somewhere reachable from GlobalManager.Instance.CommonUIManager.
+    public void SetResolution(int width, int height)
+    {
+        Screen.SetResolution(width, height, Screen.fullScreenMode);
+
+        if (GlobalManager.Instance == null) return;
+        GlobalSettingsData settings = GlobalManager.Instance.DataManager.GlobalSettings;
+        settings.resolutionWidth = width;
+        settings.resolutionHeight = height;
+        GlobalManager.Instance.DataManager.SaveGlobalSettings();
+    }
+
     // Any scene's own exit button (start screen, settings panel) can call this directly.
     public void QuitGame()
     {

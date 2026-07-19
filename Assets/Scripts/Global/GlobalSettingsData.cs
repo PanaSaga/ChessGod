@@ -11,4 +11,7 @@ public class GlobalSettingsData
 
     // -1 means no slot has ever been created/loaded yet (used by the start screen's "이어하기" button).
     public int lastUsedSlotIndex = -1;
+
+    public int resolutionWidth = 1920;
+    public int resolutionHeight = 1080;
 }

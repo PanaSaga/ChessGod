@@ -140,6 +140,10 @@ public class DataManager : MonoBehaviour
         GlobalSettings = File.Exists(path)
             ? JsonUtility.FromJson<GlobalSettingsData>(File.ReadAllText(path))
             : new GlobalSettingsData();
+
+        // Screen.SetResolution only actually changes anything in a real build - the Editor's
+        // Game view resolution is controlled separately and ignores this call.
+        Screen.SetResolution(GlobalSettings.resolutionWidth, GlobalSettings.resolutionHeight, Screen.fullScreenMode);
     }
 
     public void SaveGlobalSettings()
