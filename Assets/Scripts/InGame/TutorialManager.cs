@@ -142,14 +142,15 @@ public class TutorialManager : MonoBehaviour
 
     private void Update()
     {
-        // Per-turn rule overrides: turns 2-3 run untimed, turn 2 keeps the buff duration from
-        // ticking (the player is meant to still have it active when reaching the knight), and
-        // turn 3 keeps the transform duration from ticking (same reasoning for the transform).
+        // Per-turn rule overrides: turn 2+ runs untimed. The whole rest of the tutorial after the
+        // one and only AdvanceTurn step stays on turn 2 (buff pickup, knight transform pickup, and
+        // everything after all happen during that same turn), so both the buff and transform
+        // durations need to stay frozen for turn 2, not just one of them.
         if (gameManager != null)
         {
             gameManager.isTutorialTimerFrozen = gameManager.currentTurn >= 2;
             gameManager.isTutorialBuffTimerFrozen = gameManager.currentTurn == 2;
-            gameManager.isTutorialTransformTimerFrozen = gameManager.currentTurn == 3;
+            gameManager.isTutorialTransformTimerFrozen = gameManager.currentTurn == 2;
 
             // Space can't end a turn at all until the player has been taught it, or while a
             // pickup is still pending (picking up the buff/transform is a prerequisite for the
